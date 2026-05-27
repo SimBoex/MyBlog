@@ -1,0 +1,105 @@
+---
+title: "AI Financial Analyst — Parte 3: News Engine"
+author: "Simone Boesso"
+date: "2026-05-26"
+categories: [ai-finance, python, news, sentiment]
+description: "Recuperiamo le ultime notizie sull'azienda e calcoliamo un sentiment aggregato."
+execute:
+  warning: false
+---
+
+## Obiettivo
+
+Il News Engine recupera le ultime notizie relative a un'azienda
+e calcola un punteggio di sentiment aggregato da passare poi
+all'AI Analyst Layer. Il sentiment di mercato è spesso
+tanto importante quanto i numeri di bilancio.
+
+## Scaricare le notizie con yfinance
+
+```{python}
+import yfinance as yf
+import pandas as pd
+
+TICKER = "AAPL"
+ticker = yf.Ticker(TICKER)
+
+news = ticker.news
+df_raw = pd.DataFrame(news)
+
+df_news = pd.DataFrame([{
+    "title": item["content"].get("title", ""),
+    "publisher": item["content"].get("provider", {}).get("displayName", ""),
+    "date": pd.to_datetime(item["content"].get("pubDate", ""), utc=True)
+} for item in news])
+
+df_news.head(10)
+```
+
+## Analisi del sentiment
+
+Usiamo FinBERT, un modello pre-addestrato su testi finanziari
+che classifica ogni titolo come **positive**, **negative** o **neutral**.
+
+```{python}
+from transformers import pipeline
+
+sentiment_pipeline = pipeline(
+    "text-classification",
+    model="ProsusAI/finbert"
+)
+
+titoli = df_news["title"].tolist()[:10]
+risultati = sentiment_pipeline(titoli)
+
+df_sentiment = pd.DataFrame({
+    "titolo": titoli,
+    "sentiment": [r["label"] for r in risultati],
+    "score": [round(r["score"], 3) for r in risultati]
+})
+
+df_sentiment
+```
+
+## Sentiment aggregato
+
+```{python}
+conteggio = df_sentiment["sentiment"].value_counts()
+print(conteggio)
+
+sentiment_map = {"positive": 1, "neutral": 0, "negative": -1}
+df_sentiment["score_numerico"] = df_sentiment["sentiment"].map(sentiment_map)
+
+score_medio = df_sentiment["score_numerico"].mean()
+print(f"\nSentiment aggregato per {TICKER}: {score_medio:.2f}")
+print("(da -1 = molto negativo a +1 = molto positivo)")
+```
+
+## Interpretazione
+
+```{python}
+if score_medio > 0.3:
+    interpretazione = "Sentiment positivo — notizie recenti prevalentemente favorevoli."
+elif score_medio < -0.3:
+    interpretazione = "Sentiment negativo — notizie recenti prevalentemente sfavorevoli."
+else:
+    interpretazione = "Sentiment neutro — notizie recenti miste."
+
+print(interpretazione)
+```
+
+## Salvare il contesto news
+
+```{python}
+import os
+
+os.makedirs("data", exist_ok=True)
+df_sentiment.to_parquet(f"data/{TICKER}_sentiment.parquet")
+print("Sentiment salvato in data/")
+```
+
+## Prossimi passi
+
+Nel prossimo post combiniamo dati fondamentali, metriche e sentiment
+nell'AI Analyst Layer: un LLM che produce una valutazione strutturata
+con Quality Score, tesi di investimento e segnale finale.

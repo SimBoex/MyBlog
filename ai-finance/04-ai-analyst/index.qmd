@@ -1,0 +1,174 @@
+---
+title: "AI Financial Analyst — Parte 4: AI Analyst Layer"
+author: "Simone Boesso"
+date: "2026-05-26"
+categories: [ai-finance, python, llm, analyst]
+description: "Combiniamo dati fondamentali, metriche e sentiment in un LLM locale con Ollama."
+execute:
+  warning: false
+---
+
+## Obiettivo
+
+L'AI Analyst Layer è il cuore del sistema. Prende in input
+tutti i dati dei moduli precedenti e li passa a un LLM
+che produce una valutazione strutturata con:
+
+- **Quality Score** (0-100)
+- **Tesi di investimento**
+- **Rischi principali**
+- **Segnale finale** (buy / hold / sell / avoid)
+
+Usiamo **Ollama** con `llama3.2` per girare tutto in locale,
+senza bisogno di API key o costi esterni.
+
+## Caricare i dati dai moduli precedenti
+
+```{python}
+import pandas as pd
+import yfinance as yf
+
+TICKER = "AAPL"
+ticker = yf.Ticker(TICKER)
+info = ticker.info
+
+income = pd.read_parquet(f"../01-data-layer/data/{TICKER}_income.parquet")
+balance = pd.read_parquet(f"../01-data-layer/data/{TICKER}_balance.parquet")
+cf = pd.read_parquet(f"../01-data-layer/data/{TICKER}_cashflow.parquet")
+df_sentiment = pd.read_parquet(f"../03-news-engine/data/{TICKER}_sentiment.parquet")
+```
+
+## Calcolare le metriche
+
+```{python}
+net_income = income["Net Income"].iloc[0]
+equity = balance["Stockholders Equity"].iloc[0]
+total_debt = balance["Total Debt"].iloc[0]
+fcf = cf["Free Cash Flow"].iloc[0]
+ebitda = income["EBITDA"].iloc[0]
+
+roe = round(net_income / equity * 100, 1)
+roic = round(net_income / (equity + total_debt) * 100, 1)
+fcf_yield = round(fcf / info["marketCap"] * 100, 1)
+pe = round(info.get("trailingPE", 0), 1)
+ev_ebitda = round(info.get("enterpriseValue", 0) / ebitda, 1)
+
+sentiment_map = {"positive": 1, "neutral": 0, "negative": -1}
+df_sentiment["score_numerico"] = df_sentiment["sentiment"].map(sentiment_map)
+score_sentiment = round(df_sentiment["score_numerico"].mean(), 2)
+
+print(f"ROE: {roe}% | ROIC: {roic}% | FCF Yield: {fcf_yield}%")
+print(f"P/E: {pe}x | EV/EBITDA: {ev_ebitda}x")
+print(f"Sentiment: {score_sentiment}")
+```
+
+## Costruire il prompt
+
+```{python}
+notizie = df_sentiment["titolo"].tolist()[:5]
+notizie_str = "\n".join(f"- {t}" for t in notizie)
+
+prompt = f"""Sei un analista finanziario esperto. Analizza l'azienda {TICKER}
+sulla base dei seguenti dati e produci una valutazione strutturata.
+
+METRICHE FONDAMENTALI:
+- ROE: {roe}%
+- ROIC: {roic}%
+- FCF Yield: {fcf_yield}%
+- P/E: {pe}x
+- EV/EBITDA: {ev_ebitda}x
+
+SENTIMENT NOTIZIE RECENTI: {score_sentiment} (da -1 molto negativo a +1 molto positivo)
+
+ULTIME NOTIZIE:
+{notizie_str}
+
+Rispondi SOLO con un JSON valido, senza testo aggiuntivo, con questa struttura:
+{{
+  "quality_score": <numero da 0 a 100>,
+  "investment_thesis": "<stringa, max 3 frasi>",
+  "key_risks": ["<rischio 1>", "<rischio 2>", "<rischio 3>"],
+  "signal": "<buy | hold | sell | avoid>"
+}}"""
+
+print(prompt)
+```
+
+## Chiamare Ollama
+
+```{python}
+import ollama
+import json
+
+response = ollama.chat(
+    model="llama3.2",
+    messages=[{"role": "user", "content": prompt}]
+)
+
+risposta = response["message"]["content"]
+print(risposta)
+```
+
+## Parsare il risultato
+
+```{python}
+import re
+
+json_match = re.search(r'\{.*\}', risposta, re.DOTALL)
+if json_match:
+    analisi = json.loads(json_match.group())
+else:
+    raise ValueError("Il modello non ha restituito un JSON valido")
+
+analisi
+```
+
+## Risultato finale
+
+```{python}
+print(f"Ticker:        {TICKER}")
+print(f"Quality Score: {analisi['quality_score']}/100")
+print(f"Segnale:       {analisi['signal'].upper()}")
+print(f"\nTesi:")
+print(f"  {analisi['investment_thesis']}")
+print(f"\nRischi principali:")
+for r in analisi["key_risks"]:
+    print(f"  • {r}")
+```
+
+## Salvare il report
+
+```{python}
+import os
+
+os.makedirs("data", exist_ok=True)
+
+report = {
+    "ticker": TICKER,
+    "metriche": {
+        "roe": roe,
+        "roic": roic,
+        "fcf_yield": fcf_yield,
+        "pe": pe,
+        "ev_ebitda": ev_ebitda,
+        "sentiment": score_sentiment
+    },
+    "analisi": analisi
+}
+
+with open(f"data/{TICKER}_report.json", "w") as f:
+    json.dump(report, f, indent=2, ensure_ascii=False)
+
+print(f"Report salvato in data/{TICKER}_report.json")
+```
+
+## Conclusione
+
+Abbiamo costruito un sistema completo di AI Financial Analyst in locale:
+
+1. **Data Layer** — scarica bilanci e prezzi storici con yfinance
+2. **Metrics Engine** — calcola ROE, ROIC, FCF yield, P/E, EV/EBITDA
+3. **News Engine** — recupera notizie e calcola sentiment con FinBERT
+4. **AI Analyst Layer** — combina tutto con Ollama e produce una valutazione strutturata
+
+Il sistema gira interamente in locale, senza costi e senza API key esterne.

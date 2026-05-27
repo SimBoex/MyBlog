@@ -1,0 +1,23 @@
+{
+  "ai-finance/04-ai-analyst/index.qmd": {
+    "index.html": "7b287d80"
+  },
+  "ai-finance/02-metrics-engine/index.qmd": {
+    "index.html": "b9f52ab6"
+  },
+  "ai-finance/01-data-layer/index.qmd": {
+    "index.html": "14d3a759"
+  },
+  "ai-finance/index.qmd": {
+    "index.html": "0c22eceb"
+  },
+  "ai-finance/03-news-engine/index.qmd": {
+    "index.html": "a73bb442"
+  },
+  "index.qmd": {
+    "index.html": "fa9cdbf6"
+  },
+  "about.qmd": {
+    "about.html": "07f757af"
+  }
+}

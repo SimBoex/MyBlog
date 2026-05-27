@@ -1,0 +1,10 @@
+---
+title: "Simone Boesso"
+---
+
+Benvenuto nel mio portfolio. Qui raccolgo appunti, progetti e idee legate a ciò che sto studiando e sperimentando. Non è un portfolio professionale, ma un diario personale: a volte troverai progetti completi, altre volte solo note o spunti - anche solo per ricordarmi cose utili in futuro. Se qualcosa ti interessa o vuoi collaborare, scrivimi pure — ogni suggerimento è benvenuto!
+
+
+## Progetti
+
+- [AI Finance](ai-finance/index.qmd) — sistema di analisi finanziaria con LLM

@@ -1,0 +1,21 @@
+{
+  "ticker": "AAPL",
+  "metriche": {
+    "roe": 151.9,
+    "roic": 65.0,
+    "fcf_yield": 2.2,
+    "pe": 37.4,
+    "ev_ebitda": 31.4,
+    "sentiment": 0.0
+  },
+  "analisi": {
+    "quality_score": 80,
+    "investment_thesis": "L'azienda AAPL presenta una ROE e ROIC elevate, indicanti un buon rendimento delle attività. La FCF Yield del 2.2% suggerisce un certo equilibrio tra il flusso di cassa e le spese operative. Tuttavia, il prezzo elettronegativo (P/E) è più alto rispetto alla media dell'industria, il che potrebbe essere un deterrente per gli investitori. La valutazione EV/EBITDA del 31.4x sembra piuttosto alta in confronto alle altre aziende simili.",
+    "key_risks": [
+      "Rischio di una diminuzione della domanda dell'iPhone, a causa della concorrenza aumentata",
+      "Rischio di problemi tecnologici con la nuova strategia AI",
+      "Rischio di un calo del rendimento delle attività dovuto a un aumento dei costi"
+    ],
+    "signal": "hold"
+  }
+}

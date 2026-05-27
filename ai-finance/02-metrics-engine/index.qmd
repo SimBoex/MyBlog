@@ -1,0 +1,124 @@
+---
+title: "AI Financial Analyst — Parte 2: Metrics Engine"
+author: "Simone Boesso (e un bel po di codice AI generato)"
+date: "2026-05-26"
+categories: [ai-finance, python, metrics]
+description: "Calcoliamo le metriche fondamentali: ROE, ROIC, FCF yield, P/E, EV/EBITDA."
+execute:
+  warning: false
+---
+
+## Obiettivo
+
+Il Metrics Engine prende i dati grezzi del Data Layer e calcola
+le metriche fondamentali per valutare la qualità e il prezzo di un'azienda.
+
+## Caricare i dati
+
+```{python}
+import pandas as pd
+import yfinance as yf
+
+TICKER = "AAPL"
+ticker = yf.Ticker(TICKER)
+info = ticker.info
+
+income = pd.read_parquet(f"../01-data-layer/data/{TICKER}_income.parquet")
+balance = pd.read_parquet(f"../01-data-layer/data/{TICKER}_balance.parquet")
+cf = pd.read_parquet(f"../01-data-layer/data/{TICKER}_cashflow.parquet")
+```
+
+## ROE — Return on Equity
+
+Il ROE misura quanto profitto genera un'azienda per ogni euro
+di capitale proprio investito dagli azionisti. Un ROE alto (>15%)
+indica che l'azienda usa bene il capitale dei suoi soci.
+Esempio: ROE del 30% significa che per ogni 100€ investiti dagli
+azionisti, l'azienda genera 30€ di profitto.
+
+```{python}
+net_income = income["Net Income"].iloc[0]
+equity = balance["Stockholders Equity"].iloc[0]
+
+roe = net_income / equity * 100
+print(f"ROE: {roe:.1f}%")
+```
+
+## ROIC — Return on Invested Capital
+
+Il ROIC è più completo del ROE perché considera tutto il capitale
+investito nell'azienda, inclusi i debiti. Misura l'efficienza
+operativa reale. Un ROIC superiore al costo del capitale (WACC)
+significa che l'azienda sta creando valore per gli azionisti.
+
+```{python}
+total_debt = balance["Total Debt"].iloc[0]
+invested_capital = equity + total_debt
+
+roic = net_income / invested_capital * 100
+print(f"ROIC: {roic:.1f}%")
+```
+
+## FCF Yield — Free Cash Flow Yield
+
+Il FCF Yield è il rapporto tra il Free Cash Flow (i soldi veri
+che l'azienda genera dopo le spese) e la sua capitalizzazione
+di mercato. È come il rendimento di un'obbligazione: più è alto,
+più l'azienda genera cassa rispetto al suo prezzo in borsa.
+Un FCF Yield >5% è generalmente considerato attraente.
+
+```{python}
+fcf = cf["Free Cash Flow"].iloc[0]
+market_cap = info["marketCap"]
+
+fcf_yield = fcf / market_cap * 100
+print(f"FCF Yield: {fcf_yield:.1f}%")
+```
+
+## P/E — Price to Earnings
+
+Il P/E è il multiplo più usato in finanza. Indica quante volte
+il mercato è disposto a pagare gli utili annuali di un'azienda.
+Un P/E di 20x significa che stai pagando 20€ per ogni 1€ di utile.
+P/E basso = azienda economica (o in difficoltà).
+P/E alto = il mercato si aspetta forte crescita futura.
+
+```{python}
+pe = info.get("trailingPE", None)
+print(f"P/E: {pe:.1f}x" if pe else "P/E: non disponibile")
+```
+
+## EV/EBITDA — Enterprise Value / EBITDA
+
+L'EV/EBITDA confronta il valore totale dell'azienda (inclusi i debiti)
+con i suoi profitti operativi prima di interessi, tasse e ammortamenti.
+È utile per confrontare aziende con strutture di capitale diverse.
+Un EV/EBITDA <10x è generalmente considerato economico,
+>20x indica che il mercato prezza forte crescita futura.
+
+```{python}
+ev = info.get("enterpriseValue", None)
+ebitda = income["EBITDA"].iloc[0]
+
+ev_ebitda = ev / ebitda if ev and ebitda else None
+print(f"EV/EBITDA: {ev_ebitda:.1f}x" if ev_ebitda else "EV/EBITDA: non disponibile")
+```
+
+## Riepilogo metriche
+
+```{python}
+metriche = {
+    "ROE (%)": round(roe, 1),
+    "ROIC (%)": round(roic, 1),
+    "FCF Yield (%)": round(fcf_yield, 1),
+    "P/E": round(pe, 1) if pe else None,
+    "EV/EBITDA": round(ev_ebitda, 1) if ev_ebitda else None,
+}
+
+pd.DataFrame(metriche, index=[TICKER])
+```
+
+## Prossimi passi
+
+Nel prossimo post costruiamo il News Engine: recuperiamo
+le ultime notizie sull'azienda e calcoliamo un sentiment aggregato.

@@ -1,0 +1,192 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "---\n",
+        "title: \"AI Financial Analyst — Parte 1: Data Layer\"\n",
+        "author: \"Simone Boesso\"\n",
+        "date: \"2026-05-26\"\n",
+        "categories: [ai-finance, python, data]\n",
+        "description: \"Costruiamo il primo modulo: scarico dati fondamentali con yfinance e li salviamo in locale.\"\n",
+        "execute:\n",
+        "  warning: false\n",
+        "---\n",
+        "\n",
+        "## Obiettivo\n",
+        "\n",
+        "Il Data Layer è il fondamento del sistema. Il suo compito è recuperare\n",
+        "bilanci, cash flow e prezzi storici per qualsiasi ticker e salvarli\n",
+        "in locale per evitare rate limiting durante lo sviluppo.\n",
+        "\n",
+        "## Installazione"
+      ],
+      "id": "5dd479a6"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "#| eval: false\n",
+        "pip install yfinance pandas"
+      ],
+      "id": "9605006b",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Scaricare i dati base"
+      ],
+      "id": "f36ef371"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import yfinance as yf\n",
+        "import pandas as pd\n",
+        "\n",
+        "TICKER = \"AAPL\"\n",
+        "ticker = yf.Ticker(TICKER)\n",
+        "info = ticker.info\n",
+        "\n",
+        "print(f\"Azienda:  {info['shortName']}\")\n",
+        "print(f\"Settore:  {info['sector']}\")\n",
+        "print(f\"Market Cap: ${info['marketCap']:,.0f}\")"
+      ],
+      "id": "84899b3b",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Income Statement"
+      ],
+      "id": "02752fc3"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "income = ticker.financials.T\n",
+        "income[[\"Total Revenue\", \"Net Income\", \"EBITDA\"]].head()"
+      ],
+      "id": "f53ca690",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Balance Sheet"
+      ],
+      "id": "95d1ec60"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "balance = ticker.balance_sheet.T\n",
+        "balance[[\"Total Assets\", \"Total Debt\", \"Stockholders Equity\"]].head()"
+      ],
+      "id": "45c2486a",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Cash Flow"
+      ],
+      "id": "4393fdca"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "cf = ticker.cashflow.T\n",
+        "cf[[\"Operating Cash Flow\", \"Free Cash Flow\", \"Capital Expenditure\"]].head()"
+      ],
+      "id": "e292991b",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Prezzi storici (5 anni)"
+      ],
+      "id": "f68a0263"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "prices = ticker.history(period=\"5y\")\n",
+        "prices[[\"Close\", \"Volume\"]].tail()"
+      ],
+      "id": "73a0d00a",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Salvare in locale\n",
+        "\n",
+        "Per non chiamare le API ad ogni render, salviamo tutto in parquet:"
+      ],
+      "id": "f4389cab"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import os\n",
+        "\n",
+        "os.makedirs(\"data\", exist_ok=True)\n",
+        "\n",
+        "income.to_parquet(f\"data/{TICKER}_income.parquet\")\n",
+        "balance.to_parquet(f\"data/{TICKER}_balance.parquet\")\n",
+        "cf.to_parquet(f\"data/{TICKER}_cashflow.parquet\")\n",
+        "prices.to_parquet(f\"data/{TICKER}_prices.parquet\")\n",
+        "\n",
+        "print(\"Dati salvati in data/\")"
+      ],
+      "id": "6a9d77e5",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Prossimi passi\n",
+        "\n",
+        "Nel prossimo post useremo questi dati per calcolare\n",
+        "le metriche fondamentali: ROE, ROIC, FCF yield, P/E, EV/EBITDA."
+      ],
+      "id": "c7f98710"
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "name": "python3",
+      "language": "python",
+      "display_name": "Python 3 (ipykernel)",
+      "path": "/Users/simoneboesso/Library/Python/3.9/share/jupyter/kernels/python3"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 5
+}

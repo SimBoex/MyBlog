@@ -1,0 +1,229 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "---\n",
+        "title: \"AI Financial Analyst — Parte 2: Metrics Engine\"\n",
+        "author: \"Simone Boesso\"\n",
+        "date: \"2026-05-26\"\n",
+        "categories: [ai-finance, python, metrics]\n",
+        "description: \"Calcoliamo le metriche fondamentali: ROE, ROIC, FCF yield, P/E, EV/EBITDA.\"\n",
+        "execute:\n",
+        "  warning: false\n",
+        "---\n",
+        "\n",
+        "## Obiettivo\n",
+        "\n",
+        "Il Metrics Engine prende i dati grezzi del Data Layer e calcola\n",
+        "le metriche fondamentali per valutare la qualità e il prezzo di un'azienda.\n",
+        "\n",
+        "## Caricare i dati"
+      ],
+      "id": "e9032222"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import pandas as pd\n",
+        "import yfinance as yf\n",
+        "\n",
+        "TICKER = \"AAPL\"\n",
+        "ticker = yf.Ticker(TICKER)\n",
+        "info = ticker.info\n",
+        "\n",
+        "income = pd.read_parquet(f\"../01-data-layer/data/{TICKER}_income.parquet\")\n",
+        "balance = pd.read_parquet(f\"../01-data-layer/data/{TICKER}_balance.parquet\")\n",
+        "cf = pd.read_parquet(f\"../01-data-layer/data/{TICKER}_cashflow.parquet\")"
+      ],
+      "id": "ead97cc7",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## ROE — Return on Equity\n",
+        "\n",
+        "Il ROE misura quanto profitto genera un'azienda per ogni euro\n",
+        "di capitale proprio investito dagli azionisti. Un ROE alto (>15%)\n",
+        "indica che l'azienda usa bene il capitale dei suoi soci.\n",
+        "Esempio: ROE del 30% significa che per ogni 100€ investiti dagli\n",
+        "azionisti, l'azienda genera 30€ di profitto."
+      ],
+      "id": "b5c5fba8"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "net_income = income[\"Net Income\"].iloc[0]\n",
+        "equity = balance[\"Stockholders Equity\"].iloc[0]\n",
+        "\n",
+        "roe = net_income / equity * 100\n",
+        "print(f\"ROE: {roe:.1f}%\")"
+      ],
+      "id": "480ebc88",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## ROIC — Return on Invested Capital\n",
+        "\n",
+        "Il ROIC è più completo del ROE perché considera tutto il capitale\n",
+        "investito nell'azienda, inclusi i debiti. Misura l'efficienza\n",
+        "operativa reale. Un ROIC superiore al costo del capitale (WACC)\n",
+        "significa che l'azienda sta creando valore per gli azionisti."
+      ],
+      "id": "d6eb7f08"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "total_debt = balance[\"Total Debt\"].iloc[0]\n",
+        "invested_capital = equity + total_debt\n",
+        "\n",
+        "roic = net_income / invested_capital * 100\n",
+        "print(f\"ROIC: {roic:.1f}%\")"
+      ],
+      "id": "dc0e1cd0",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## FCF Yield — Free Cash Flow Yield\n",
+        "\n",
+        "Il FCF Yield è il rapporto tra il Free Cash Flow (i soldi veri\n",
+        "che l'azienda genera dopo le spese) e la sua capitalizzazione\n",
+        "di mercato. È come il rendimento di un'obbligazione: più è alto,\n",
+        "più l'azienda genera cassa rispetto al suo prezzo in borsa.\n",
+        "Un FCF Yield >5% è generalmente considerato attraente."
+      ],
+      "id": "bab1483d"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "fcf = cf[\"Free Cash Flow\"].iloc[0]\n",
+        "market_cap = info[\"marketCap\"]\n",
+        "\n",
+        "fcf_yield = fcf / market_cap * 100\n",
+        "print(f\"FCF Yield: {fcf_yield:.1f}%\")"
+      ],
+      "id": "bf625851",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## P/E — Price to Earnings\n",
+        "\n",
+        "Il P/E è il multiplo più usato in finanza. Indica quante volte\n",
+        "il mercato è disposto a pagare gli utili annuali di un'azienda.\n",
+        "Un P/E di 20x significa che stai pagando 20€ per ogni 1€ di utile.\n",
+        "P/E basso = azienda economica (o in difficoltà).\n",
+        "P/E alto = il mercato si aspetta forte crescita futura."
+      ],
+      "id": "4f44befe"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "pe = info.get(\"trailingPE\", None)\n",
+        "print(f\"P/E: {pe:.1f}x\" if pe else \"P/E: non disponibile\")"
+      ],
+      "id": "2309c0a5",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## EV/EBITDA — Enterprise Value / EBITDA\n",
+        "\n",
+        "L'EV/EBITDA confronta il valore totale dell'azienda (inclusi i debiti)\n",
+        "con i suoi profitti operativi prima di interessi, tasse e ammortamenti.\n",
+        "È utile per confrontare aziende con strutture di capitale diverse.\n",
+        "Un EV/EBITDA <10x è generalmente considerato economico,\n",
+        ">20x indica che il mercato prezza forte crescita futura."
+      ],
+      "id": "14eeea58"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "ev = info.get(\"enterpriseValue\", None)\n",
+        "ebitda = income[\"EBITDA\"].iloc[0]\n",
+        "\n",
+        "ev_ebitda = ev / ebitda if ev and ebitda else None\n",
+        "print(f\"EV/EBITDA: {ev_ebitda:.1f}x\" if ev_ebitda else \"EV/EBITDA: non disponibile\")"
+      ],
+      "id": "111a1a64",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Riepilogo metriche"
+      ],
+      "id": "56650417"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "metriche = {\n",
+        "    \"ROE (%)\": round(roe, 1),\n",
+        "    \"ROIC (%)\": round(roic, 1),\n",
+        "    \"FCF Yield (%)\": round(fcf_yield, 1),\n",
+        "    \"P/E\": round(pe, 1) if pe else None,\n",
+        "    \"EV/EBITDA\": round(ev_ebitda, 1) if ev_ebitda else None,\n",
+        "}\n",
+        "\n",
+        "pd.DataFrame(metriche, index=[TICKER])"
+      ],
+      "id": "af443db7",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Prossimi passi\n",
+        "\n",
+        "Nel prossimo post costruiamo il News Engine: recuperiamo\n",
+        "le ultime notizie sull'azienda e calcoliamo un sentiment aggregato."
+      ],
+      "id": "0eaa9fd2"
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "name": "python3",
+      "language": "python",
+      "display_name": "Python 3 (ipykernel)",
+      "path": "/Users/simoneboesso/Library/Python/3.9/share/jupyter/kernels/python3"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 5
+}

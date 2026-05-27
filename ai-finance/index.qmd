@@ -1,0 +1,12 @@
+---
+title: "AI Finance"
+listing:
+  contents: .
+  sort: "date desc"
+  type: default
+  categories: true
+---
+
+Serie di post sulla costruzione di un sistema di analisi finanziaria
+con Python e LLM in locale.
+EOF

@@ -1,0 +1,28 @@
+project:
+  type: website
+
+website:
+  title: "Simone Boesso"
+  description: "Portfolio e progetti"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: ai-finance/index.qmd
+        text: AI Finance
+    right:
+      - icon: github
+        href: https://github.com/
+      - icon: bluesky
+        href: https://bsky.app/
+
+format:
+  html:
+    theme:
+      - cosmo
+    css: styles.css
+    toc: true
+    code-fold: true
+
+execute:
+  freeze: auto

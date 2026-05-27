@@ -1,0 +1,87 @@
+---
+title: "AI Financial Analyst — Parte 1: Data Layer"
+author: "Simone Boesso"
+date: "2026-05-26"
+categories: [ai-finance, python, data]
+description: "Costruiamo il primo modulo: scarico dati fondamentali con yfinance e li salviamo in locale."
+execute:
+  warning: false
+---
+
+## Obiettivo
+
+Il Data Layer è il fondamento del sistema. Il suo compito è recuperare
+bilanci, cash flow e prezzi storici per qualsiasi ticker e salvarli
+in locale per evitare rate limiting durante lo sviluppo.
+
+## Installazione
+
+```{python}
+#| eval: false
+pip install yfinance pandas
+```
+
+## Scaricare i dati base
+
+```{python}
+import yfinance as yf
+import pandas as pd
+
+TICKER = "AAPL"
+ticker = yf.Ticker(TICKER)
+info = ticker.info
+
+print(f"Azienda:  {info['shortName']}")
+print(f"Settore:  {info['sector']}")
+print(f"Market Cap: ${info['marketCap']:,.0f}")
+```
+
+## Income Statement
+
+```{python}
+income = ticker.financials.T
+income[["Total Revenue", "Net Income", "EBITDA"]].head()
+```
+
+## Balance Sheet
+
+```{python}
+balance = ticker.balance_sheet.T
+balance[["Total Assets", "Total Debt", "Stockholders Equity"]].head()
+```
+
+## Cash Flow
+
+```{python}
+cf = ticker.cashflow.T
+cf[["Operating Cash Flow", "Free Cash Flow", "Capital Expenditure"]].head()
+```
+
+## Prezzi storici (5 anni)
+
+```{python}
+prices = ticker.history(period="5y")
+prices[["Close", "Volume"]].tail()
+```
+
+## Salvare in locale
+
+Per non chiamare le API ad ogni render, salviamo tutto in parquet:
+
+```{python}
+import os
+
+os.makedirs("data", exist_ok=True)
+
+income.to_parquet(f"data/{TICKER}_income.parquet")
+balance.to_parquet(f"data/{TICKER}_balance.parquet")
+cf.to_parquet(f"data/{TICKER}_cashflow.parquet")
+prices.to_parquet(f"data/{TICKER}_prices.parquet")
+
+print("Dati salvati in data/")
+```
+
+## Prossimi passi
+
+Nel prossimo post useremo questi dati per calcolare
+le metriche fondamentali: ROE, ROIC, FCF yield, P/E, EV/EBITDA.

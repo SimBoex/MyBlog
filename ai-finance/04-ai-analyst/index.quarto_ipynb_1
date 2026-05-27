@@ -1,0 +1,279 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "---\n",
+        "title: \"AI Financial Analyst — Parte 4: AI Analyst Layer\"\n",
+        "author: \"Simone Boesso\"\n",
+        "date: \"2026-05-26\"\n",
+        "categories: [ai-finance, python, llm, analyst]\n",
+        "description: \"Combiniamo dati fondamentali, metriche e sentiment in un LLM locale con Ollama.\"\n",
+        "execute:\n",
+        "  warning: false\n",
+        "---\n",
+        "\n",
+        "## Obiettivo\n",
+        "\n",
+        "L'AI Analyst Layer è il cuore del sistema. Prende in input\n",
+        "tutti i dati dei moduli precedenti e li passa a un LLM\n",
+        "che produce una valutazione strutturata con:\n",
+        "\n",
+        "- **Quality Score** (0-100)\n",
+        "- **Tesi di investimento**\n",
+        "- **Rischi principali**\n",
+        "- **Segnale finale** (buy / hold / sell / avoid)\n",
+        "\n",
+        "Usiamo **Ollama** con `llama3.2` per girare tutto in locale,\n",
+        "senza bisogno di API key o costi esterni.\n",
+        "\n",
+        "## Caricare i dati dai moduli precedenti"
+      ],
+      "id": "cd330efb"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import pandas as pd\n",
+        "import yfinance as yf\n",
+        "\n",
+        "TICKER = \"AAPL\"\n",
+        "ticker = yf.Ticker(TICKER)\n",
+        "info = ticker.info\n",
+        "\n",
+        "income = pd.read_parquet(f\"../01-data-layer/data/{TICKER}_income.parquet\")\n",
+        "balance = pd.read_parquet(f\"../01-data-layer/data/{TICKER}_balance.parquet\")\n",
+        "cf = pd.read_parquet(f\"../01-data-layer/data/{TICKER}_cashflow.parquet\")\n",
+        "df_sentiment = pd.read_parquet(f\"../03-news-engine/data/{TICKER}_sentiment.parquet\")"
+      ],
+      "id": "ed6003a6",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Calcolare le metriche"
+      ],
+      "id": "e38a9c93"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "net_income = income[\"Net Income\"].iloc[0]\n",
+        "equity = balance[\"Stockholders Equity\"].iloc[0]\n",
+        "total_debt = balance[\"Total Debt\"].iloc[0]\n",
+        "fcf = cf[\"Free Cash Flow\"].iloc[0]\n",
+        "ebitda = income[\"EBITDA\"].iloc[0]\n",
+        "\n",
+        "roe = round(net_income / equity * 100, 1)\n",
+        "roic = round(net_income / (equity + total_debt) * 100, 1)\n",
+        "fcf_yield = round(fcf / info[\"marketCap\"] * 100, 1)\n",
+        "pe = round(info.get(\"trailingPE\", 0), 1)\n",
+        "ev_ebitda = round(info.get(\"enterpriseValue\", 0) / ebitda, 1)\n",
+        "\n",
+        "sentiment_map = {\"positive\": 1, \"neutral\": 0, \"negative\": -1}\n",
+        "df_sentiment[\"score_numerico\"] = df_sentiment[\"sentiment\"].map(sentiment_map)\n",
+        "score_sentiment = round(df_sentiment[\"score_numerico\"].mean(), 2)\n",
+        "\n",
+        "print(f\"ROE: {roe}% | ROIC: {roic}% | FCF Yield: {fcf_yield}%\")\n",
+        "print(f\"P/E: {pe}x | EV/EBITDA: {ev_ebitda}x\")\n",
+        "print(f\"Sentiment: {score_sentiment}\")"
+      ],
+      "id": "0e80ed9c",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Costruire il prompt"
+      ],
+      "id": "c8480839"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "notizie = df_sentiment[\"titolo\"].tolist()[:5]\n",
+        "notizie_str = \"\\n\".join(f\"- {t}\" for t in notizie)\n",
+        "\n",
+        "prompt = f\"\"\"Sei un analista finanziario esperto. Analizza l'azienda {TICKER}\n",
+        "sulla base dei seguenti dati e produci una valutazione strutturata.\n",
+        "\n",
+        "METRICHE FONDAMENTALI:\n",
+        "- ROE: {roe}%\n",
+        "- ROIC: {roic}%\n",
+        "- FCF Yield: {fcf_yield}%\n",
+        "- P/E: {pe}x\n",
+        "- EV/EBITDA: {ev_ebitda}x\n",
+        "\n",
+        "SENTIMENT NOTIZIE RECENTI: {score_sentiment} (da -1 molto negativo a +1 molto positivo)\n",
+        "\n",
+        "ULTIME NOTIZIE:\n",
+        "{notizie_str}\n",
+        "\n",
+        "Rispondi SOLO con un JSON valido, senza testo aggiuntivo, con questa struttura:\n",
+        "{{\n",
+        "  \"quality_score\": <numero da 0 a 100>,\n",
+        "  \"investment_thesis\": \"<stringa, max 3 frasi>\",\n",
+        "  \"key_risks\": [\"<rischio 1>\", \"<rischio 2>\", \"<rischio 3>\"],\n",
+        "  \"signal\": \"<buy | hold | sell | avoid>\"\n",
+        "}}\"\"\"\n",
+        "\n",
+        "print(prompt)"
+      ],
+      "id": "43d735b6",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Chiamare Ollama"
+      ],
+      "id": "7bffb4b3"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import ollama\n",
+        "import json\n",
+        "\n",
+        "response = ollama.chat(\n",
+        "    model=\"llama3.2\",\n",
+        "    messages=[{\"role\": \"user\", \"content\": prompt}]\n",
+        ")\n",
+        "\n",
+        "risposta = response[\"message\"][\"content\"]\n",
+        "print(risposta)"
+      ],
+      "id": "f153df4a",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Parsare il risultato"
+      ],
+      "id": "4bb5fb20"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import re\n",
+        "\n",
+        "json_match = re.search(r'\\{.*\\}', risposta, re.DOTALL)\n",
+        "if json_match:\n",
+        "    analisi = json.loads(json_match.group())\n",
+        "else:\n",
+        "    raise ValueError(\"Il modello non ha restituito un JSON valido\")\n",
+        "\n",
+        "analisi"
+      ],
+      "id": "ba60fd49",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Risultato finale"
+      ],
+      "id": "e7e1ec15"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "print(f\"Ticker:        {TICKER}\")\n",
+        "print(f\"Quality Score: {analisi['quality_score']}/100\")\n",
+        "print(f\"Segnale:       {analisi['signal'].upper()}\")\n",
+        "print(f\"\\nTesi:\")\n",
+        "print(f\"  {analisi['investment_thesis']}\")\n",
+        "print(f\"\\nRischi principali:\")\n",
+        "for r in analisi[\"key_risks\"]:\n",
+        "    print(f\"  • {r}\")"
+      ],
+      "id": "4c09cfed",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Salvare il report"
+      ],
+      "id": "19bbac0f"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import os\n",
+        "\n",
+        "os.makedirs(\"data\", exist_ok=True)\n",
+        "\n",
+        "report = {\n",
+        "    \"ticker\": TICKER,\n",
+        "    \"metriche\": {\n",
+        "        \"roe\": roe,\n",
+        "        \"roic\": roic,\n",
+        "        \"fcf_yield\": fcf_yield,\n",
+        "        \"pe\": pe,\n",
+        "        \"ev_ebitda\": ev_ebitda,\n",
+        "        \"sentiment\": score_sentiment\n",
+        "    },\n",
+        "    \"analisi\": analisi\n",
+        "}\n",
+        "\n",
+        "with open(f\"data/{TICKER}_report.json\", \"w\") as f:\n",
+        "    json.dump(report, f, indent=2, ensure_ascii=False)\n",
+        "\n",
+        "print(f\"Report salvato in data/{TICKER}_report.json\")"
+      ],
+      "id": "e7dc9f32",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Conclusione\n",
+        "\n",
+        "Abbiamo costruito un sistema completo di AI Financial Analyst in locale:\n",
+        "\n",
+        "1. **Data Layer** — scarica bilanci e prezzi storici con yfinance\n",
+        "2. **Metrics Engine** — calcola ROE, ROIC, FCF yield, P/E, EV/EBITDA\n",
+        "3. **News Engine** — recupera notizie e calcola sentiment con FinBERT\n",
+        "4. **AI Analyst Layer** — combina tutto con Ollama e produce una valutazione strutturata\n",
+        "\n",
+        "Il sistema gira interamente in locale, senza costi e senza API key esterne."
+      ],
+      "id": "4ecda3ed"
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "name": "python3",
+      "language": "python",
+      "display_name": "Python 3 (ipykernel)",
+      "path": "/Users/simoneboesso/Library/Python/3.9/share/jupyter/kernels/python3"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 5
+}
