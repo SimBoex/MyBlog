@@ -1,0 +1,296 @@
+[
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this site"
+  },
+  {
+    "objectID": "ai-finance/02-metrics-engine/index.html",
+    "href": "ai-finance/02-metrics-engine/index.html",
+    "title": "AI Financial Analyst — Parte 2: Metrics Engine",
+    "section": "",
+    "text": "Il Metrics Engine prende i dati grezzi del Data Layer e calcola le metriche fondamentali per valutare la qualità e il prezzo di un’azienda."
+  },
+  {
+    "objectID": "ai-finance/02-metrics-engine/index.html#obiettivo",
+    "href": "ai-finance/02-metrics-engine/index.html#obiettivo",
+    "title": "AI Financial Analyst — Parte 2: Metrics Engine",
+    "section": "",
+    "text": "Il Metrics Engine prende i dati grezzi del Data Layer e calcola le metriche fondamentali per valutare la qualità e il prezzo di un’azienda."
+  },
+  {
+    "objectID": "ai-finance/02-metrics-engine/index.html#caricare-i-dati",
+    "href": "ai-finance/02-metrics-engine/index.html#caricare-i-dati",
+    "title": "AI Financial Analyst — Parte 2: Metrics Engine",
+    "section": "Caricare i dati",
+    "text": "Caricare i dati\n\n\nCode\nimport pandas as pd\nimport yfinance as yf\n\nTICKER = \"AAPL\"\nticker = yf.Ticker(TICKER)\ninfo = ticker.info\n\nincome = pd.read_parquet(f\"../01-data-layer/data/{TICKER}_income.parquet\")\nbalance = pd.read_parquet(f\"../01-data-layer/data/{TICKER}_balance.parquet\")\ncf = pd.read_parquet(f\"../01-data-layer/data/{TICKER}_cashflow.parquet\")"
+  },
+  {
+    "objectID": "ai-finance/02-metrics-engine/index.html#roe-return-on-equity",
+    "href": "ai-finance/02-metrics-engine/index.html#roe-return-on-equity",
+    "title": "AI Financial Analyst — Parte 2: Metrics Engine",
+    "section": "ROE — Return on Equity",
+    "text": "ROE — Return on Equity\nIl ROE misura quanto profitto genera un’azienda per ogni euro di capitale proprio investito dagli azionisti. Un ROE alto (&gt;15%) indica che l’azienda usa bene il capitale dei suoi soci. Esempio: ROE del 30% significa che per ogni 100€ investiti dagli azionisti, l’azienda genera 30€ di profitto.\n\n\nCode\nnet_income = income[\"Net Income\"].iloc[0]\nequity = balance[\"Stockholders Equity\"].iloc[0]\n\nroe = net_income / equity * 100\nprint(f\"ROE: {roe:.1f}%\")\n\n\nROE: 151.9%"
+  },
+  {
+    "objectID": "ai-finance/02-metrics-engine/index.html#roic-return-on-invested-capital",
+    "href": "ai-finance/02-metrics-engine/index.html#roic-return-on-invested-capital",
+    "title": "AI Financial Analyst — Parte 2: Metrics Engine",
+    "section": "ROIC — Return on Invested Capital",
+    "text": "ROIC — Return on Invested Capital\nIl ROIC è più completo del ROE perché considera tutto il capitale investito nell’azienda, inclusi i debiti. Misura l’efficienza operativa reale. Un ROIC superiore al costo del capitale (WACC) significa che l’azienda sta creando valore per gli azionisti.\n\n\nCode\ntotal_debt = balance[\"Total Debt\"].iloc[0]\ninvested_capital = equity + total_debt\n\nroic = net_income / invested_capital * 100\nprint(f\"ROIC: {roic:.1f}%\")\n\n\nROIC: 65.0%"
+  },
+  {
+    "objectID": "ai-finance/02-metrics-engine/index.html#fcf-yield-free-cash-flow-yield",
+    "href": "ai-finance/02-metrics-engine/index.html#fcf-yield-free-cash-flow-yield",
+    "title": "AI Financial Analyst — Parte 2: Metrics Engine",
+    "section": "FCF Yield — Free Cash Flow Yield",
+    "text": "FCF Yield — Free Cash Flow Yield\nIl FCF Yield è il rapporto tra il Free Cash Flow (i soldi veri che l’azienda genera dopo le spese) e la sua capitalizzazione di mercato. È come il rendimento di un’obbligazione: più è alto, più l’azienda genera cassa rispetto al suo prezzo in borsa. Un FCF Yield &gt;5% è generalmente considerato attraente.\n\n\nCode\nfcf = cf[\"Free Cash Flow\"].iloc[0]\nmarket_cap = info[\"marketCap\"]\n\nfcf_yield = fcf / market_cap * 100\nprint(f\"FCF Yield: {fcf_yield:.1f}%\")\n\n\nFCF Yield: 2.2%"
+  },
+  {
+    "objectID": "ai-finance/02-metrics-engine/index.html#pe-price-to-earnings",
+    "href": "ai-finance/02-metrics-engine/index.html#pe-price-to-earnings",
+    "title": "AI Financial Analyst — Parte 2: Metrics Engine",
+    "section": "P/E — Price to Earnings",
+    "text": "P/E — Price to Earnings\nIl P/E è il multiplo più usato in finanza. Indica quante volte il mercato è disposto a pagare gli utili annuali di un’azienda. Un P/E di 20x significa che stai pagando 20€ per ogni 1€ di utile. P/E basso = azienda economica (o in difficoltà). P/E alto = il mercato si aspetta forte crescita futura.\n\n\nCode\npe = info.get(\"trailingPE\", None)\nprint(f\"P/E: {pe:.1f}x\" if pe else \"P/E: non disponibile\")\n\n\nP/E: 37.6x"
+  },
+  {
+    "objectID": "ai-finance/02-metrics-engine/index.html#evebitda-enterprise-value-ebitda",
+    "href": "ai-finance/02-metrics-engine/index.html#evebitda-enterprise-value-ebitda",
+    "title": "AI Financial Analyst — Parte 2: Metrics Engine",
+    "section": "EV/EBITDA — Enterprise Value / EBITDA",
+    "text": "EV/EBITDA — Enterprise Value / EBITDA\nL’EV/EBITDA confronta il valore totale dell’azienda (inclusi i debiti) con i suoi profitti operativi prima di interessi, tasse e ammortamenti. È utile per confrontare aziende con strutture di capitale diverse. Un EV/EBITDA &lt;10x è generalmente considerato economico, &gt;20x indica che il mercato prezza forte crescita futura.\n\n\nCode\nev = info.get(\"enterpriseValue\", None)\nebitda = income[\"EBITDA\"].iloc[0]\n\nev_ebitda = ev / ebitda if ev and ebitda else None\nprint(f\"EV/EBITDA: {ev_ebitda:.1f}x\" if ev_ebitda else \"EV/EBITDA: non disponibile\")\n\n\nEV/EBITDA: 31.4x"
+  },
+  {
+    "objectID": "ai-finance/02-metrics-engine/index.html#riepilogo-metriche",
+    "href": "ai-finance/02-metrics-engine/index.html#riepilogo-metriche",
+    "title": "AI Financial Analyst — Parte 2: Metrics Engine",
+    "section": "Riepilogo metriche",
+    "text": "Riepilogo metriche\n\n\nCode\nmetriche = {\n    \"ROE (%)\": round(roe, 1),\n    \"ROIC (%)\": round(roic, 1),\n    \"FCF Yield (%)\": round(fcf_yield, 1),\n    \"P/E\": round(pe, 1) if pe else None,\n    \"EV/EBITDA\": round(ev_ebitda, 1) if ev_ebitda else None,\n}\n\npd.DataFrame(metriche, index=[TICKER])\n\n\n\n\n\n\n\n\n\nROE (%)\nROIC (%)\nFCF Yield (%)\nP/E\nEV/EBITDA\n\n\n\n\nAAPL\n151.9\n65.0\n2.2\n37.6\n31.4"
+  },
+  {
+    "objectID": "ai-finance/02-metrics-engine/index.html#prossimi-passi",
+    "href": "ai-finance/02-metrics-engine/index.html#prossimi-passi",
+    "title": "AI Financial Analyst — Parte 2: Metrics Engine",
+    "section": "Prossimi passi",
+    "text": "Prossimi passi\nNel prossimo post costruiamo il News Engine: recuperiamo le ultime notizie sull’azienda e calcoliamo un sentiment aggregato."
+  },
+  {
+    "objectID": "ai-finance/01-data-layer/index.html",
+    "href": "ai-finance/01-data-layer/index.html",
+    "title": "AI Financial Analyst — Parte 1: Data Layer",
+    "section": "",
+    "text": "Il Data Layer è il fondamento del sistema. Il suo compito è recuperare bilanci, cash flow e prezzi storici per qualsiasi ticker e salvarli in locale per evitare rate limiting durante lo sviluppo."
+  },
+  {
+    "objectID": "ai-finance/01-data-layer/index.html#obiettivo",
+    "href": "ai-finance/01-data-layer/index.html#obiettivo",
+    "title": "AI Financial Analyst — Parte 1: Data Layer",
+    "section": "",
+    "text": "Il Data Layer è il fondamento del sistema. Il suo compito è recuperare bilanci, cash flow e prezzi storici per qualsiasi ticker e salvarli in locale per evitare rate limiting durante lo sviluppo."
+  },
+  {
+    "objectID": "ai-finance/01-data-layer/index.html#installazione",
+    "href": "ai-finance/01-data-layer/index.html#installazione",
+    "title": "AI Financial Analyst — Parte 1: Data Layer",
+    "section": "Installazione",
+    "text": "Installazione\n\n\nCode\npip install yfinance pandas"
+  },
+  {
+    "objectID": "ai-finance/01-data-layer/index.html#scaricare-i-dati-base",
+    "href": "ai-finance/01-data-layer/index.html#scaricare-i-dati-base",
+    "title": "AI Financial Analyst — Parte 1: Data Layer",
+    "section": "Scaricare i dati base",
+    "text": "Scaricare i dati base\n\n\nCode\nimport yfinance as yf\nimport pandas as pd\n\nTICKER = \"AAPL\"\nticker = yf.Ticker(TICKER)\ninfo = ticker.info\n\nprint(f\"Azienda:  {info['shortName']}\")\nprint(f\"Settore:  {info['sector']}\")\nprint(f\"Market Cap: ${info['marketCap']:,.0f}\")\n\n\nAzienda:  Apple Inc.\nSettore:  Technology\nMarket Cap: $4,528,552,280,064"
+  },
+  {
+    "objectID": "ai-finance/01-data-layer/index.html#income-statement",
+    "href": "ai-finance/01-data-layer/index.html#income-statement",
+    "title": "AI Financial Analyst — Parte 1: Data Layer",
+    "section": "Income Statement",
+    "text": "Income Statement\n\n\nCode\nincome = ticker.financials.T\nincome[[\"Total Revenue\", \"Net Income\", \"EBITDA\"]].head()\n\n\n\n\n\n\n\n\n\nTotal Revenue\nNet Income\nEBITDA\n\n\n\n\n2025-09-30\n4.161610e+11\n1.120100e+11\n1.447480e+11\n\n\n2024-09-30\n3.910350e+11\n9.373600e+10\n1.346610e+11\n\n\n2023-09-30\n3.832850e+11\n9.699500e+10\n1.258200e+11\n\n\n2022-09-30\n3.943280e+11\n9.980300e+10\n1.305410e+11\n\n\n2021-09-30\nNaN\nNaN\nNaN"
+  },
+  {
+    "objectID": "ai-finance/01-data-layer/index.html#balance-sheet",
+    "href": "ai-finance/01-data-layer/index.html#balance-sheet",
+    "title": "AI Financial Analyst — Parte 1: Data Layer",
+    "section": "Balance Sheet",
+    "text": "Balance Sheet\n\n\nCode\nbalance = ticker.balance_sheet.T\nbalance[[\"Total Assets\", \"Total Debt\", \"Stockholders Equity\"]].head()\n\n\n\n\n\n\n\n\n\nTotal Assets\nTotal Debt\nStockholders Equity\n\n\n\n\n2025-09-30\n3.592410e+11\n9.865700e+10\n7.373300e+10\n\n\n2024-09-30\n3.649800e+11\n1.066290e+11\n5.695000e+10\n\n\n2023-09-30\n3.525830e+11\n1.110880e+11\n6.214600e+10\n\n\n2022-09-30\n3.527550e+11\n1.324800e+11\n5.067200e+10\n\n\n2021-09-30\nNaN\nNaN\nNaN"
+  },
+  {
+    "objectID": "ai-finance/01-data-layer/index.html#cash-flow",
+    "href": "ai-finance/01-data-layer/index.html#cash-flow",
+    "title": "AI Financial Analyst — Parte 1: Data Layer",
+    "section": "Cash Flow",
+    "text": "Cash Flow\n\n\nCode\ncf = ticker.cashflow.T\ncf[[\"Operating Cash Flow\", \"Free Cash Flow\", \"Capital Expenditure\"]].head()\n\n\n\n\n\n\n\n\n\nOperating Cash Flow\nFree Cash Flow\nCapital Expenditure\n\n\n\n\n2025-09-30\n1.114820e+11\n9.876700e+10\n-1.271500e+10\n\n\n2024-09-30\n1.182540e+11\n1.088070e+11\n-9.447000e+09\n\n\n2023-09-30\n1.105430e+11\n9.958400e+10\n-1.095900e+10\n\n\n2022-09-30\n1.221510e+11\n1.114430e+11\n-1.070800e+10\n\n\n2021-09-30\nNaN\nNaN\nNaN"
+  },
+  {
+    "objectID": "ai-finance/01-data-layer/index.html#prezzi-storici-5-anni",
+    "href": "ai-finance/01-data-layer/index.html#prezzi-storici-5-anni",
+    "title": "AI Financial Analyst — Parte 1: Data Layer",
+    "section": "Prezzi storici (5 anni)",
+    "text": "Prezzi storici (5 anni)\n\n\nCode\nprices = ticker.history(period=\"5y\")\nprices[[\"Close\", \"Volume\"]].tail()\n\n\n\n\n\n\n\n\n\nClose\nVolume\n\n\nDate\n\n\n\n\n\n\n2026-05-19 00:00:00-04:00\n298.970001\n42243600\n\n\n2026-05-20 00:00:00-04:00\n302.250000\n38229800\n\n\n2026-05-21 00:00:00-04:00\n304.989990\n42965100\n\n\n2026-05-22 00:00:00-04:00\n308.820007\n43627900\n\n\n2026-05-26 00:00:00-04:00\n308.329987\n41880194"
+  },
+  {
+    "objectID": "ai-finance/01-data-layer/index.html#salvare-in-locale",
+    "href": "ai-finance/01-data-layer/index.html#salvare-in-locale",
+    "title": "AI Financial Analyst — Parte 1: Data Layer",
+    "section": "Salvare in locale",
+    "text": "Salvare in locale\nPer non chiamare le API ad ogni render, salviamo tutto in parquet:\n\n\nCode\nimport os\n\nos.makedirs(\"data\", exist_ok=True)\n\nincome.to_parquet(f\"data/{TICKER}_income.parquet\")\nbalance.to_parquet(f\"data/{TICKER}_balance.parquet\")\ncf.to_parquet(f\"data/{TICKER}_cashflow.parquet\")\nprices.to_parquet(f\"data/{TICKER}_prices.parquet\")\n\nprint(\"Dati salvati in data/\")\n\n\nDati salvati in data/"
+  },
+  {
+    "objectID": "ai-finance/01-data-layer/index.html#prossimi-passi",
+    "href": "ai-finance/01-data-layer/index.html#prossimi-passi",
+    "title": "AI Financial Analyst — Parte 1: Data Layer",
+    "section": "Prossimi passi",
+    "text": "Prossimi passi\nNel prossimo post useremo questi dati per calcolare le metriche fondamentali: ROE, ROIC, FCF yield, P/E, EV/EBITDA."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Simone Boesso",
+    "section": "",
+    "text": "Benvenuto nel mio portfolio. Qui raccolgo appunti, progetti e idee legate a ciò che sto studiando e sperimentando. Non è un portfolio professionale, ma un diario personale: a volte troverai progetti completi, altre volte solo note o spunti - anche solo per ricordarmi cose utili in futuro. Se qualcosa ti interessa o vuoi collaborare, scrivimi pure — ogni suggerimento è benvenuto!"
+  },
+  {
+    "objectID": "index.html#progetti",
+    "href": "index.html#progetti",
+    "title": "Simone Boesso",
+    "section": "Progetti",
+    "text": "Progetti\n\nAI Finance — sistema di analisi finanziaria con LLM"
+  },
+  {
+    "objectID": "ai-finance/index.html",
+    "href": "ai-finance/index.html",
+    "title": "AI Finance",
+    "section": "",
+    "text": "Serie di post sulla costruzione di un sistema di analisi finanziaria con Python e LLM in locale. EOF\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nAI Financial Analyst — Parte 1: Data Layer\n\n\n\nai-finance\n\npython\n\ndata\n\n\n\nCostruiamo il primo modulo: scarico dati fondamentali con yfinance e li salviamo in locale.\n\n\n\n\n\nMay 26, 2026\n\n\nSimone Boesso\n\n\n\n\n\n\n\n\n\n\n\n\nAI Financial Analyst — Parte 3: News Engine\n\n\n\nai-finance\n\npython\n\nnews\n\nsentiment\n\n\n\nRecuperiamo le ultime notizie sull’azienda e calcoliamo un sentiment aggregato.\n\n\n\n\n\nMay 26, 2026\n\n\nSimone Boesso\n\n\n\n\n\n\n\n\n\n\n\n\nAI Financial Analyst — Parte 2: Metrics Engine\n\n\n\nai-finance\n\npython\n\nmetrics\n\n\n\nCalcoliamo le metriche fondamentali: ROE, ROIC, FCF yield, P/E, EV/EBITDA.\n\n\n\n\n\nMay 26, 2026\n\n\nSimone Boesso (e un bel po di codice AI generato)\n\n\n\n\n\n\n\n\n\n\n\n\nAI Financial Analyst — Parte 4: AI Analyst Layer\n\n\n\nai-finance\n\npython\n\nllm\n\nanalyst\n\n\n\nCombiniamo dati fondamentali, metriche e sentiment in un LLM locale con Ollama.\n\n\n\n\n\nMay 26, 2026\n\n\nSimone Boesso\n\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "ai-finance/03-news-engine/index.html",
+    "href": "ai-finance/03-news-engine/index.html",
+    "title": "AI Financial Analyst — Parte 3: News Engine",
+    "section": "",
+    "text": "Il News Engine recupera le ultime notizie relative a un’azienda e calcola un punteggio di sentiment aggregato da passare poi all’AI Analyst Layer. Il sentiment di mercato è spesso tanto importante quanto i numeri di bilancio."
+  },
+  {
+    "objectID": "ai-finance/03-news-engine/index.html#obiettivo",
+    "href": "ai-finance/03-news-engine/index.html#obiettivo",
+    "title": "AI Financial Analyst — Parte 3: News Engine",
+    "section": "",
+    "text": "Il News Engine recupera le ultime notizie relative a un’azienda e calcola un punteggio di sentiment aggregato da passare poi all’AI Analyst Layer. Il sentiment di mercato è spesso tanto importante quanto i numeri di bilancio."
+  },
+  {
+    "objectID": "ai-finance/03-news-engine/index.html#scaricare-le-notizie-con-yfinance",
+    "href": "ai-finance/03-news-engine/index.html#scaricare-le-notizie-con-yfinance",
+    "title": "AI Financial Analyst — Parte 3: News Engine",
+    "section": "Scaricare le notizie con yfinance",
+    "text": "Scaricare le notizie con yfinance\n\n\nCode\nimport yfinance as yf\nimport pandas as pd\n\nTICKER = \"AAPL\"\nticker = yf.Ticker(TICKER)\n\nnews = ticker.news\ndf_raw = pd.DataFrame(news)\n\ndf_news = pd.DataFrame([{\n    \"title\": item[\"content\"].get(\"title\", \"\"),\n    \"publisher\": item[\"content\"].get(\"provider\", {}).get(\"displayName\", \"\"),\n    \"date\": pd.to_datetime(item[\"content\"].get(\"pubDate\", \"\"), utc=True)\n} for item in news])\n\ndf_news.head(10)\n\n\n\n\n\n\n\n\n\ntitle\npublisher\ndate\n\n\n\n\n0\nWhy investors aren't loving Ferrari's new Luce EV\nYahoo Finance Video\n2026-05-26 14:22:49+00:00\n\n\n1\nApple's AI strategy challenge might be solved ...\nYahoo Finance\n2026-05-26 16:04:42+00:00\n\n\n2\nStocks to Watch: Ferrari, Dell, Marvell Techno...\nThe Wall Street Journal\n2026-05-26 20:20:35+00:00\n\n\n3\nRPG Investment Advisory Opens Centrus Energy S...\nMotley Fool\n2026-05-26 20:19:37+00:00\n\n\n4\nLaunch of Ferrari’s $640,000 EV Erupts Into a ...\nThe Wall Street Journal\n2026-05-26 20:00:00+00:00\n\n\n5\nAppLovin (APP) Stock Trades Up, Here Is Why\nStockStory\n2026-05-26 19:59:28+00:00\n\n\n6\nBank of America resets Apple stock price targe...\nTheStreet\n2026-05-26 19:13:00+00:00\n\n\n7\nApple seen as key beneficiary of emerging agen...\nProactive\n2026-05-26 19:09:00+00:00\n\n\n8\nFerrari reverses after controversial EV announ...\nTheStreet\n2026-05-26 18:47:00+00:00\n\n\n9\nThis Bullish Options Trade On Apple Stock Coul...\nInvestor's Business Daily\n2026-05-26 18:45:05+00:00"
+  },
+  {
+    "objectID": "ai-finance/03-news-engine/index.html#analisi-del-sentiment",
+    "href": "ai-finance/03-news-engine/index.html#analisi-del-sentiment",
+    "title": "AI Financial Analyst — Parte 3: News Engine",
+    "section": "Analisi del sentiment",
+    "text": "Analisi del sentiment\nUsiamo FinBERT, un modello pre-addestrato su testi finanziari che classifica ogni titolo come positive, negative o neutral.\n\n\nCode\nfrom transformers import pipeline\n\nsentiment_pipeline = pipeline(\n    \"text-classification\",\n    model=\"ProsusAI/finbert\"\n)\n\ntitoli = df_news[\"title\"].tolist()[:10]\nrisultati = sentiment_pipeline(titoli)\n\ndf_sentiment = pd.DataFrame({\n    \"titolo\": titoli,\n    \"sentiment\": [r[\"label\"] for r in risultati],\n    \"score\": [round(r[\"score\"], 3) for r in risultati]\n})\n\ndf_sentiment\n\n\n\n\n\n\n\n\n\ntitolo\nsentiment\nscore\n\n\n\n\n0\nWhy investors aren't loving Ferrari's new Luce EV\nneutral\n0.753\n\n\n1\nApple's AI strategy challenge might be solved ...\nneutral\n0.748\n\n\n2\nStocks to Watch: Ferrari, Dell, Marvell Techno...\nneutral\n0.935\n\n\n3\nRPG Investment Advisory Opens Centrus Energy S...\nneutral\n0.944\n\n\n4\nLaunch of Ferrari’s $640,000 EV Erupts Into a ...\nnegative\n0.844\n\n\n5\nAppLovin (APP) Stock Trades Up, Here Is Why\nneutral\n0.822\n\n\n6\nBank of America resets Apple stock price targe...\nneutral\n0.573\n\n\n7\nApple seen as key beneficiary of emerging agen...\npositive\n0.731\n\n\n8\nFerrari reverses after controversial EV announ...\nnegative\n0.854\n\n\n9\nThis Bullish Options Trade On Apple Stock Coul...\npositive\n0.923"
+  },
+  {
+    "objectID": "ai-finance/03-news-engine/index.html#sentiment-aggregato",
+    "href": "ai-finance/03-news-engine/index.html#sentiment-aggregato",
+    "title": "AI Financial Analyst — Parte 3: News Engine",
+    "section": "Sentiment aggregato",
+    "text": "Sentiment aggregato\n\n\nCode\nconteggio = df_sentiment[\"sentiment\"].value_counts()\nprint(conteggio)\n\nsentiment_map = {\"positive\": 1, \"neutral\": 0, \"negative\": -1}\ndf_sentiment[\"score_numerico\"] = df_sentiment[\"sentiment\"].map(sentiment_map)\n\nscore_medio = df_sentiment[\"score_numerico\"].mean()\nprint(f\"\\nSentiment aggregato per {TICKER}: {score_medio:.2f}\")\nprint(\"(da -1 = molto negativo a +1 = molto positivo)\")\n\n\nsentiment\nneutral     6\nnegative    2\npositive    2\nName: count, dtype: int64\n\nSentiment aggregato per AAPL: 0.00\n(da -1 = molto negativo a +1 = molto positivo)"
+  },
+  {
+    "objectID": "ai-finance/03-news-engine/index.html#interpretazione",
+    "href": "ai-finance/03-news-engine/index.html#interpretazione",
+    "title": "AI Financial Analyst — Parte 3: News Engine",
+    "section": "Interpretazione",
+    "text": "Interpretazione\n\n\nCode\nif score_medio &gt; 0.3:\n    interpretazione = \"Sentiment positivo — notizie recenti prevalentemente favorevoli.\"\nelif score_medio &lt; -0.3:\n    interpretazione = \"Sentiment negativo — notizie recenti prevalentemente sfavorevoli.\"\nelse:\n    interpretazione = \"Sentiment neutro — notizie recenti miste.\"\n\nprint(interpretazione)\n\n\nSentiment neutro — notizie recenti miste."
+  },
+  {
+    "objectID": "ai-finance/03-news-engine/index.html#salvare-il-contesto-news",
+    "href": "ai-finance/03-news-engine/index.html#salvare-il-contesto-news",
+    "title": "AI Financial Analyst — Parte 3: News Engine",
+    "section": "Salvare il contesto news",
+    "text": "Salvare il contesto news\n\n\nCode\nimport os\n\nos.makedirs(\"data\", exist_ok=True)\ndf_sentiment.to_parquet(f\"data/{TICKER}_sentiment.parquet\")\nprint(\"Sentiment salvato in data/\")\n\n\nSentiment salvato in data/"
+  },
+  {
+    "objectID": "ai-finance/03-news-engine/index.html#prossimi-passi",
+    "href": "ai-finance/03-news-engine/index.html#prossimi-passi",
+    "title": "AI Financial Analyst — Parte 3: News Engine",
+    "section": "Prossimi passi",
+    "text": "Prossimi passi\nNel prossimo post combiniamo dati fondamentali, metriche e sentiment nell’AI Analyst Layer: un LLM che produce una valutazione strutturata con Quality Score, tesi di investimento e segnale finale."
+  },
+  {
+    "objectID": "ai-finance/04-ai-analyst/index.html",
+    "href": "ai-finance/04-ai-analyst/index.html",
+    "title": "AI Financial Analyst — Parte 4: AI Analyst Layer",
+    "section": "",
+    "text": "L’AI Analyst Layer è il cuore del sistema. Prende in input tutti i dati dei moduli precedenti e li passa a un LLM che produce una valutazione strutturata con:\n\nQuality Score (0-100)\nTesi di investimento\nRischi principali\nSegnale finale (buy / hold / sell / avoid)\n\nUsiamo Ollama con llama3.2 per girare tutto in locale, senza bisogno di API key o costi esterni."
+  },
+  {
+    "objectID": "ai-finance/04-ai-analyst/index.html#obiettivo",
+    "href": "ai-finance/04-ai-analyst/index.html#obiettivo",
+    "title": "AI Financial Analyst — Parte 4: AI Analyst Layer",
+    "section": "",
+    "text": "L’AI Analyst Layer è il cuore del sistema. Prende in input tutti i dati dei moduli precedenti e li passa a un LLM che produce una valutazione strutturata con:\n\nQuality Score (0-100)\nTesi di investimento\nRischi principali\nSegnale finale (buy / hold / sell / avoid)\n\nUsiamo Ollama con llama3.2 per girare tutto in locale, senza bisogno di API key o costi esterni."
+  },
+  {
+    "objectID": "ai-finance/04-ai-analyst/index.html#caricare-i-dati-dai-moduli-precedenti",
+    "href": "ai-finance/04-ai-analyst/index.html#caricare-i-dati-dai-moduli-precedenti",
+    "title": "AI Financial Analyst — Parte 4: AI Analyst Layer",
+    "section": "Caricare i dati dai moduli precedenti",
+    "text": "Caricare i dati dai moduli precedenti\n\n\nCode\nimport pandas as pd\nimport yfinance as yf\n\nTICKER = \"AAPL\"\nticker = yf.Ticker(TICKER)\ninfo = ticker.info\n\nincome = pd.read_parquet(f\"../01-data-layer/data/{TICKER}_income.parquet\")\nbalance = pd.read_parquet(f\"../01-data-layer/data/{TICKER}_balance.parquet\")\ncf = pd.read_parquet(f\"../01-data-layer/data/{TICKER}_cashflow.parquet\")\ndf_sentiment = pd.read_parquet(f\"../03-news-engine/data/{TICKER}_sentiment.parquet\")"
+  },
+  {
+    "objectID": "ai-finance/04-ai-analyst/index.html#calcolare-le-metriche",
+    "href": "ai-finance/04-ai-analyst/index.html#calcolare-le-metriche",
+    "title": "AI Financial Analyst — Parte 4: AI Analyst Layer",
+    "section": "Calcolare le metriche",
+    "text": "Calcolare le metriche\n\n\nCode\nnet_income = income[\"Net Income\"].iloc[0]\nequity = balance[\"Stockholders Equity\"].iloc[0]\ntotal_debt = balance[\"Total Debt\"].iloc[0]\nfcf = cf[\"Free Cash Flow\"].iloc[0]\nebitda = income[\"EBITDA\"].iloc[0]\n\nroe = round(net_income / equity * 100, 1)\nroic = round(net_income / (equity + total_debt) * 100, 1)\nfcf_yield = round(fcf / info[\"marketCap\"] * 100, 1)\npe = round(info.get(\"trailingPE\", 0), 1)\nev_ebitda = round(info.get(\"enterpriseValue\", 0) / ebitda, 1)\n\nsentiment_map = {\"positive\": 1, \"neutral\": 0, \"negative\": -1}\ndf_sentiment[\"score_numerico\"] = df_sentiment[\"sentiment\"].map(sentiment_map)\nscore_sentiment = round(df_sentiment[\"score_numerico\"].mean(), 2)\n\nprint(f\"ROE: {roe}% | ROIC: {roic}% | FCF Yield: {fcf_yield}%\")\nprint(f\"P/E: {pe}x | EV/EBITDA: {ev_ebitda}x\")\nprint(f\"Sentiment: {score_sentiment}\")\n\n\nROE: 151.9% | ROIC: 65.0% | FCF Yield: 2.2%\nP/E: 37.4x | EV/EBITDA: 31.4x\nSentiment: 0.0"
+  },
+  {
+    "objectID": "ai-finance/04-ai-analyst/index.html#costruire-il-prompt",
+    "href": "ai-finance/04-ai-analyst/index.html#costruire-il-prompt",
+    "title": "AI Financial Analyst — Parte 4: AI Analyst Layer",
+    "section": "Costruire il prompt",
+    "text": "Costruire il prompt\n\n\nCode\nnotizie = df_sentiment[\"titolo\"].tolist()[:5]\nnotizie_str = \"\\n\".join(f\"- {t}\" for t in notizie)\n\nprompt = f\"\"\"Sei un analista finanziario esperto. Analizza l'azienda {TICKER}\nsulla base dei seguenti dati e produci una valutazione strutturata.\n\nMETRICHE FONDAMENTALI:\n- ROE: {roe}%\n- ROIC: {roic}%\n- FCF Yield: {fcf_yield}%\n- P/E: {pe}x\n- EV/EBITDA: {ev_ebitda}x\n\nSENTIMENT NOTIZIE RECENTI: {score_sentiment} (da -1 molto negativo a +1 molto positivo)\n\nULTIME NOTIZIE:\n{notizie_str}\n\nRispondi SOLO con un JSON valido, senza testo aggiuntivo, con questa struttura:\n{{\n  \"quality_score\": &lt;numero da 0 a 100&gt;,\n  \"investment_thesis\": \"&lt;stringa, max 3 frasi&gt;\",\n  \"key_risks\": [\"&lt;rischio 1&gt;\", \"&lt;rischio 2&gt;\", \"&lt;rischio 3&gt;\"],\n  \"signal\": \"&lt;buy | hold | sell | avoid&gt;\"\n}}\"\"\"\n\nprint(prompt)\n\n\nSei un analista finanziario esperto. Analizza l'azienda AAPL\nsulla base dei seguenti dati e produci una valutazione strutturata.\n\nMETRICHE FONDAMENTALI:\n- ROE: 151.9%\n- ROIC: 65.0%\n- FCF Yield: 2.2%\n- P/E: 37.4x\n- EV/EBITDA: 31.4x\n\nSENTIMENT NOTIZIE RECENTI: 0.0 (da -1 molto negativo a +1 molto positivo)\n\nULTIME NOTIZIE:\n- Why investors aren't loving Ferrari's new Luce EV\n- Apple's AI strategy challenge might be solved by the iPhone's 'agentic AI moat'\n- Stocks to Watch: Ferrari, Dell, Marvell Technology, AutoZone\n- RPG Investment Advisory Opens Centrus Energy Stake Valued at $9 Million, According to Recent SEC Filing\n- Launch of Ferrari’s $640,000 EV Erupts Into a Storm About Its Looks\n\nRispondi SOLO con un JSON valido, senza testo aggiuntivo, con questa struttura:\n{\n  \"quality_score\": &lt;numero da 0 a 100&gt;,\n  \"investment_thesis\": \"&lt;stringa, max 3 frasi&gt;\",\n  \"key_risks\": [\"&lt;rischio 1&gt;\", \"&lt;rischio 2&gt;\", \"&lt;rischio 3&gt;\"],\n  \"signal\": \"&lt;buy | hold | sell | avoid&gt;\"\n}"
+  },
+  {
+    "objectID": "ai-finance/04-ai-analyst/index.html#chiamare-ollama",
+    "href": "ai-finance/04-ai-analyst/index.html#chiamare-ollama",
+    "title": "AI Financial Analyst — Parte 4: AI Analyst Layer",
+    "section": "Chiamare Ollama",
+    "text": "Chiamare Ollama\n\n\nCode\nimport ollama\nimport json\n\nresponse = ollama.chat(\n    model=\"llama3.2\",\n    messages=[{\"role\": \"user\", \"content\": prompt}]\n)\n\nrisposta = response[\"message\"][\"content\"]\nprint(risposta)\n\n\n{\n  \"quality_score\": 80,\n  \"investment_thesis\": \"L'azienda AAPL presenta una ROE e ROIC elevate, indicanti un buon rendimento delle attività. La FCF Yield del 2.2% suggerisce un certo equilibrio tra il flusso di cassa e le spese operative. Tuttavia, il prezzo elettronegativo (P/E) è più alto rispetto alla media dell'industria, il che potrebbe essere un deterrente per gli investitori. La valutazione EV/EBITDA del 31.4x sembra piuttosto alta in confronto alle altre aziende simili.\",\n  \"key_risks\": [\"Rischio di una diminuzione della domanda dell'iPhone, a causa della concorrenza aumentata\", \"Rischio di problemi tecnologici con la nuova strategia AI\", \"Rischio di un calo del rendimento delle attività dovuto a un aumento dei costi\"],\n  \"signal\": \"hold\"\n}"
+  },
+  {
+    "objectID": "ai-finance/04-ai-analyst/index.html#parsare-il-risultato",
+    "href": "ai-finance/04-ai-analyst/index.html#parsare-il-risultato",
+    "title": "AI Financial Analyst — Parte 4: AI Analyst Layer",
+    "section": "Parsare il risultato",
+    "text": "Parsare il risultato\n\n\nCode\nimport re\n\njson_match = re.search(r'\\{.*\\}', risposta, re.DOTALL)\nif json_match:\n    analisi = json.loads(json_match.group())\nelse:\n    raise ValueError(\"Il modello non ha restituito un JSON valido\")\n\nanalisi\n\n\n{'quality_score': 80,\n 'investment_thesis': \"L'azienda AAPL presenta una ROE e ROIC elevate, indicanti un buon rendimento delle attività. La FCF Yield del 2.2% suggerisce un certo equilibrio tra il flusso di cassa e le spese operative. Tuttavia, il prezzo elettronegativo (P/E) è più alto rispetto alla media dell'industria, il che potrebbe essere un deterrente per gli investitori. La valutazione EV/EBITDA del 31.4x sembra piuttosto alta in confronto alle altre aziende simili.\",\n 'key_risks': [\"Rischio di una diminuzione della domanda dell'iPhone, a causa della concorrenza aumentata\",\n  'Rischio di problemi tecnologici con la nuova strategia AI',\n  'Rischio di un calo del rendimento delle attività dovuto a un aumento dei costi'],\n 'signal': 'hold'}"
+  },
+  {
+    "objectID": "ai-finance/04-ai-analyst/index.html#risultato-finale",
+    "href": "ai-finance/04-ai-analyst/index.html#risultato-finale",
+    "title": "AI Financial Analyst — Parte 4: AI Analyst Layer",
+    "section": "Risultato finale",
+    "text": "Risultato finale\n\n\nCode\nprint(f\"Ticker:        {TICKER}\")\nprint(f\"Quality Score: {analisi['quality_score']}/100\")\nprint(f\"Segnale:       {analisi['signal'].upper()}\")\nprint(f\"\\nTesi:\")\nprint(f\"  {analisi['investment_thesis']}\")\nprint(f\"\\nRischi principali:\")\nfor r in analisi[\"key_risks\"]:\n    print(f\"  • {r}\")\n\n\nTicker:        AAPL\nQuality Score: 80/100\nSegnale:       HOLD\n\nTesi:\n  L'azienda AAPL presenta una ROE e ROIC elevate, indicanti un buon rendimento delle attività. La FCF Yield del 2.2% suggerisce un certo equilibrio tra il flusso di cassa e le spese operative. Tuttavia, il prezzo elettronegativo (P/E) è più alto rispetto alla media dell'industria, il che potrebbe essere un deterrente per gli investitori. La valutazione EV/EBITDA del 31.4x sembra piuttosto alta in confronto alle altre aziende simili.\n\nRischi principali:\n  • Rischio di una diminuzione della domanda dell'iPhone, a causa della concorrenza aumentata\n  • Rischio di problemi tecnologici con la nuova strategia AI\n  • Rischio di un calo del rendimento delle attività dovuto a un aumento dei costi"
+  },
+  {
+    "objectID": "ai-finance/04-ai-analyst/index.html#salvare-il-report",
+    "href": "ai-finance/04-ai-analyst/index.html#salvare-il-report",
+    "title": "AI Financial Analyst — Parte 4: AI Analyst Layer",
+    "section": "Salvare il report",
+    "text": "Salvare il report\n\n\nCode\nimport os\n\nos.makedirs(\"data\", exist_ok=True)\n\nreport = {\n    \"ticker\": TICKER,\n    \"metriche\": {\n        \"roe\": roe,\n        \"roic\": roic,\n        \"fcf_yield\": fcf_yield,\n        \"pe\": pe,\n        \"ev_ebitda\": ev_ebitda,\n        \"sentiment\": score_sentiment\n    },\n    \"analisi\": analisi\n}\n\nwith open(f\"data/{TICKER}_report.json\", \"w\") as f:\n    json.dump(report, f, indent=2, ensure_ascii=False)\n\nprint(f\"Report salvato in data/{TICKER}_report.json\")\n\n\nReport salvato in data/AAPL_report.json"
+  },
+  {
+    "objectID": "ai-finance/04-ai-analyst/index.html#conclusione",
+    "href": "ai-finance/04-ai-analyst/index.html#conclusione",
+    "title": "AI Financial Analyst — Parte 4: AI Analyst Layer",
+    "section": "Conclusione",
+    "text": "Conclusione\nAbbiamo costruito un sistema completo di AI Financial Analyst in locale:\n\nData Layer — scarica bilanci e prezzi storici con yfinance\nMetrics Engine — calcola ROE, ROIC, FCF yield, P/E, EV/EBITDA\nNews Engine — recupera notizie e calcola sentiment con FinBERT\nAI Analyst Layer — combina tutto con Ollama e produce una valutazione strutturata\n\nIl sistema gira interamente in locale, senza costi e senza API key esterne."
+  }
+]
