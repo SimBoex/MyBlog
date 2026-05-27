@@ -1,5 +1,11 @@
 name: Render and deploy Quarto site
 
+# garantisce che GITHUB_TOKEN possa scrivere i contenuti (push su gh-pages)
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 on:
   push:
     branches: [ main ]
