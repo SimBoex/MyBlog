@@ -3,6 +3,9 @@ project:
 
 website:
   title: "Simone Boesso"
+  # URL completo del sito (utile per i metadati)
+  site-url: "https://SimBoex.github.io/MyBlog/"
+  # base-url può essere rimosso se causa errore nella tua versione di Quarto
   description: "Portfolio e progetti"
   navbar:
     left:
@@ -12,7 +15,7 @@ website:
         text: AI Finance
     right:
       - icon: github
-        href: https://github.com/
+        href: https://github.com/SimBoex
       - icon: bluesky
         href: https://bsky.app/
 
