@@ -1,0 +1,18 @@
+# Quarto / site build
+_site/
+.quarto/
+_freeze/
+
+# R / RStudio
+.Rhistory
+.RData
+.Rproj.user
+*.Rproj
+
+# macOS
+.DS_Store
+
+# Node / temp
+node_modules/
+npm-debug.log
+*.log
