@@ -1,0 +1,10 @@
+---
+title: "Rent Tracker"
+listing:
+  contents: .
+  sort: "date desc"
+  type: default
+  categories: true
+---
+
+A series of posts on building a rent tracker system. 
