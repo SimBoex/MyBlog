@@ -1,0 +1,116 @@
+---
+title: "ETL: Extract, Transform, Load pipeline"
+author: "Simone Boesso"
+date: "2026-09-14"
+categories: [ETL, Feature engineering, Data pipeline]
+description: "Let's build the first section of my system: the ETL pipeline."
+execute:
+  warning: false
+---
+
+# AIM
+- INPUT: OMI.CSV data
+- OUTPUT: a JSONL file
+
+## Extracting data from OMI.CSV
+- the file is generated each 6 months;
+- We need to parse the data and extract the following fields:
+    ```
+    required = ("zona", "tipologia", "loc_min", "loc_max")
+    ```
+- For each row in the CSV file, we will create a dictionary with the required fields and append it to a list.
+    ```
+    rows.append(
+            {
+                "source": "agenziaentrate-omi",
+                "comune": comune or "Roma",
+                "zona_omi": zona,
+                "zona_omi_descr": zona_descr,
+                "tipologia": tip,
+                "stato": stato,
+                "loc_min": loc_min,
+                "loc_max": loc_max,
+                "semester": sem,
+                "input_file": path.name,
+            }
+        )
+    '''
+
+
+
+
+## Transforming data
+- INPUT: a list of dictionaries
+- OUTPUT: a list of dictionaries with transformed data: enriched.
+
+### Feature Engineering
+- For now, we will compute the following features:
+    - `loc_mid`: the mid location price (average of min and max)
+    - `loc_mid_lag`: the mid location price at previous semester for same zona/tipologia/stato
+
+```{python}
+def build_features(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Mid target + lag mid from previous semester for same zona/tipologia/stato."""
+    # Build a dict of lists of tuples (semester key, mid) by zona/tipologia/stato
+    by_key: dict[tuple[Any, ...], list[tuple[tuple[int, int], float]]] = {}
+
+    for row in rows:
+        mid = (float(row["loc_min"]) + float(row["loc_max"])) / 2.0
+        key = (row.get("zona_omi"), row.get("tipologia"), row.get("stato"))
+        by_key.setdefault(key, []).append((semester_key(row["semester"]), mid))
+
+    # ordering by year and half
+    for series in by_key.values():
+        series.sort(key=lambda x: x[0])
+
+    enriched: list[dict[str, Any]] = []
+
+    for row in rows:
+        mid = (float(row["loc_min"]) + float(row["loc_max"])) / 2.0
+        key = (row.get("zona_omi"), row.get("tipologia"), row.get("stato"))
+        sk = semester_key(row["semester"])
+
+        # mid location price at previous semester
+        lag = None
+        series = by_key.get(key, [])
+
+        for i, (sem_k, _) in enumerate(series):
+            if sem_k == sk:
+                if i > 0:
+                    lag = series[i - 1][1]
+                break
+        enriched.append(
+            {
+                "source": row.get("source", "agenziaentrate-omi"),
+                "listing_id": (
+                    f"{row.get('zona_omi')}|{row.get('tipologia')}|"
+                    f"{row.get('stato')}|{row.get('semester')}"
+                ),
+                "zona_omi": row.get("zona_omi"),
+                "zona_omi_descr": row.get("zona_omi_descr"),
+                "tipologia": row.get("tipologia"),
+                "stato": row.get("stato"),
+                "semester": row.get("semester"),
+                # mid location price at previous semester
+                "loc_mid_lag": lag,
+                # min and max location price
+                "omi_loc_min": float(row["loc_min"]),
+                "omi_loc_max": float(row["loc_max"]),
+                TARGET: mid,
+            }
+        )
+    return enriched
+```
+
+### Load phase
+- The enriched data will be saved in a JSONL file, where each line is a valid JSON object.
+
+### Design Choices
+1. Each row is a dictionary with the required fields
+2. JSONL file format for output
+    - Each line is a valid JSON object (flexible and easy to parse)
+    - This format is easy to stream and process line by line
+    - Crash-safe: if the process is interrupted, we can resume from the last valid line
+3. The target is the mid location price, computed as the average of min and max location prices
+4. The lag feature is computed for each unique combination of zona/tipologia/stato, and it represents the mid location price at the previous semester.
+    - Here, I don't isolate the history of each unique combination, if the need arises for modelling stressing temporal dependencies, we could consider using a more sophisticated approach, such as a dedicated time series forecasting model.
