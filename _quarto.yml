@@ -11,8 +11,8 @@ website:
     left:
       - href: index.qmd
         text: Home
-      - href: ai-finance/index.qmd
-        text: AI Finance
+      - href: Rent-tracker/index.qmd/
+        text: Rent Tracker
     right:
       - icon: github
         href: https://github.com/SimBoex
