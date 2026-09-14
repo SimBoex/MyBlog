@@ -8,7 +8,6 @@ execute:
   warning: false
   enabled: false
 ---
-"a"
 # AIM
 - INPUT: OMI.CSV data
 - OUTPUT: a JSONL file
