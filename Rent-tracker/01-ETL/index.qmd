@@ -20,7 +20,7 @@ execute:
     ```
 - For each row in the CSV file, we will create a dictionary with the required fields and append it to a list.
     
-    ```{python}
+```{python}
     rows.append(
             {
                 "source": "agenziaentrate-omi",
@@ -35,7 +35,7 @@ execute:
                 "input_file": path.name,
             }
         )
-    '''
+```
 
 
 
