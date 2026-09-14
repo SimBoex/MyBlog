@@ -19,7 +19,8 @@ execute:
     required = ("zona", "tipologia", "loc_min", "loc_max")
     ```
 - For each row in the CSV file, we will create a dictionary with the required fields and append it to a list.
-    ```
+    
+    ```{python}
     rows.append(
             {
                 "source": "agenziaentrate-omi",
