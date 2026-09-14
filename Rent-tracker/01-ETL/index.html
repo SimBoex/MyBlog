@@ -29,6 +29,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -200,11 +235,29 @@ ul.task-list li input[type="checkbox"] {
 <section id="extracting-data-from-omi.csv" class="level2">
 <h2 class="anchored" data-anchor-id="extracting-data-from-omi.csv">Extracting data from OMI.CSV</h2>
 <ul>
-<li><p>the file is generated each 6 months;</p></li>
-<li><p>We need to parse the data and extract the following fields: <code>required = ("zona", "tipologia", "loc_min", "loc_max")</code></p></li>
-<li><p>For each row in the CSV file, we will create a dictionary with the required fields and append it to a list.</p>
-<p>rows.append( { “source”: “agenziaentrate-omi”, “comune”: comune or “Roma”, “zona_omi”: zona, “zona_omi_descr”: zona_descr, “tipologia”: tip, “stato”: stato, “loc_min”: loc_min, “loc_max”: loc_max, “semester”: sem, “input_file”: path.name, } ) ’’’</p></li>
+<li>the file is generated each 6 months;</li>
+<li>We need to parse the data and extract the following fields: <code>required = ("zona", "tipologia", "loc_min", "loc_max")</code></li>
+<li>For each row in the CSV file, we will create a dictionary with the required fields and append it to a list.</li>
 </ul>
+<div id="dedd1a19" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>    rows.append(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>            {</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>                <span class="st">"source"</span>: <span class="st">"agenziaentrate-omi"</span>,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                <span class="st">"comune"</span>: comune <span class="kw">or</span> <span class="st">"Roma"</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>                <span class="st">"zona_omi"</span>: zona,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>                <span class="st">"zona_omi_descr"</span>: zona_descr,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>                <span class="st">"tipologia"</span>: tip,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>                <span class="st">"stato"</span>: stato,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>                <span class="st">"loc_min"</span>: loc_min,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>                <span class="st">"loc_max"</span>: loc_max,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>                <span class="st">"semester"</span>: sem,</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>                <span class="st">"input_file"</span>: path.name,</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>            }</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>        )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
 </section>
 <section id="transforming-data" class="level2">
 <h2 class="anchored" data-anchor-id="transforming-data">Transforming data</h2>
@@ -221,57 +274,62 @@ ul.task-list li input[type="checkbox"] {
 <li><code>loc_mid_lag</code>: the mid location price at previous semester for same zona/tipologia/stato</li>
 </ul></li>
 </ul>
-<pre class="{python}"><code>def build_features(rows: list[dict[str, Any]]) -&gt; list[dict[str, Any]]:
-    """Mid target + lag mid from previous semester for same zona/tipologia/stato."""
-    # Build a dict of lists of tuples (semester key, mid) by zona/tipologia/stato
-    by_key: dict[tuple[Any, ...], list[tuple[tuple[int, int], float]]] = {}
-
-    for row in rows:
-        mid = (float(row["loc_min"]) + float(row["loc_max"])) / 2.0
-        key = (row.get("zona_omi"), row.get("tipologia"), row.get("stato"))
-        by_key.setdefault(key, []).append((semester_key(row["semester"]), mid))
-
-    # ordering by year and half
-    for series in by_key.values():
-        series.sort(key=lambda x: x[0])
-
-    enriched: list[dict[str, Any]] = []
-
-    for row in rows:
-        mid = (float(row["loc_min"]) + float(row["loc_max"])) / 2.0
-        key = (row.get("zona_omi"), row.get("tipologia"), row.get("stato"))
-        sk = semester_key(row["semester"])
-
-        # mid location price at previous semester
-        lag = None
-        series = by_key.get(key, [])
-
-        for i, (sem_k, _) in enumerate(series):
-            if sem_k == sk:
-                if i &gt; 0:
-                    lag = series[i - 1][1]
-                break
-        enriched.append(
-            {
-                "source": row.get("source", "agenziaentrate-omi"),
-                "listing_id": (
-                    f"{row.get('zona_omi')}|{row.get('tipologia')}|"
-                    f"{row.get('stato')}|{row.get('semester')}"
-                ),
-                "zona_omi": row.get("zona_omi"),
-                "zona_omi_descr": row.get("zona_omi_descr"),
-                "tipologia": row.get("tipologia"),
-                "stato": row.get("stato"),
-                "semester": row.get("semester"),
-                # mid location price at previous semester
-                "loc_mid_lag": lag,
-                # min and max location price
-                "omi_loc_min": float(row["loc_min"]),
-                "omi_loc_max": float(row["loc_max"]),
-                TARGET: mid,
-            }
-        )
-    return enriched</code></pre>
+<div id="027a4af2" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> build_features(rows: <span class="bu">list</span>[<span class="bu">dict</span>[<span class="bu">str</span>, Any]]) <span class="op">-&gt;</span> <span class="bu">list</span>[<span class="bu">dict</span>[<span class="bu">str</span>, Any]]:</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Mid target + lag mid from previous semester for same zona/tipologia/stato."""</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Build a dict of lists of tuples (semester key, mid) by zona/tipologia/stato</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    by_key: <span class="bu">dict</span>[<span class="bu">tuple</span>[Any, ...], <span class="bu">list</span>[<span class="bu">tuple</span>[<span class="bu">tuple</span>[<span class="bu">int</span>, <span class="bu">int</span>], <span class="bu">float</span>]]] <span class="op">=</span> {}</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> row <span class="kw">in</span> rows:</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        mid <span class="op">=</span> (<span class="bu">float</span>(row[<span class="st">"loc_min"</span>]) <span class="op">+</span> <span class="bu">float</span>(row[<span class="st">"loc_max"</span>])) <span class="op">/</span> <span class="fl">2.0</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        key <span class="op">=</span> (row.get(<span class="st">"zona_omi"</span>), row.get(<span class="st">"tipologia"</span>), row.get(<span class="st">"stato"</span>))</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>        by_key.setdefault(key, []).append((semester_key(row[<span class="st">"semester"</span>]), mid))</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ordering by year and half</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> series <span class="kw">in</span> by_key.values():</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>        series.sort(key<span class="op">=</span><span class="kw">lambda</span> x: x[<span class="dv">0</span>])</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    enriched: <span class="bu">list</span>[<span class="bu">dict</span>[<span class="bu">str</span>, Any]] <span class="op">=</span> []</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> row <span class="kw">in</span> rows:</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>        mid <span class="op">=</span> (<span class="bu">float</span>(row[<span class="st">"loc_min"</span>]) <span class="op">+</span> <span class="bu">float</span>(row[<span class="st">"loc_max"</span>])) <span class="op">/</span> <span class="fl">2.0</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>        key <span class="op">=</span> (row.get(<span class="st">"zona_omi"</span>), row.get(<span class="st">"tipologia"</span>), row.get(<span class="st">"stato"</span>))</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>        sk <span class="op">=</span> semester_key(row[<span class="st">"semester"</span>])</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>        <span class="co"># mid location price at previous semester</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>        lag <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>        series <span class="op">=</span> by_key.get(key, [])</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i, (sem_k, _) <span class="kw">in</span> <span class="bu">enumerate</span>(series):</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> sem_k <span class="op">==</span> sk:</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> i <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>                    lag <span class="op">=</span> series[i <span class="op">-</span> <span class="dv">1</span>][<span class="dv">1</span>]</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>                <span class="cf">break</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>        enriched.append(</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>            {</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>                <span class="st">"source"</span>: row.get(<span class="st">"source"</span>, <span class="st">"agenziaentrate-omi"</span>),</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>                <span class="st">"listing_id"</span>: (</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>                    <span class="ss">f"</span><span class="sc">{</span>row<span class="sc">.</span>get(<span class="st">'zona_omi'</span>)<span class="sc">}</span><span class="ss">|</span><span class="sc">{</span>row<span class="sc">.</span>get(<span class="st">'tipologia'</span>)<span class="sc">}</span><span class="ss">|"</span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>                    <span class="ss">f"</span><span class="sc">{</span>row<span class="sc">.</span>get(<span class="st">'stato'</span>)<span class="sc">}</span><span class="ss">|</span><span class="sc">{</span>row<span class="sc">.</span>get(<span class="st">'semester'</span>)<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>                ),</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>                <span class="st">"zona_omi"</span>: row.get(<span class="st">"zona_omi"</span>),</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>                <span class="st">"zona_omi_descr"</span>: row.get(<span class="st">"zona_omi_descr"</span>),</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>                <span class="st">"tipologia"</span>: row.get(<span class="st">"tipologia"</span>),</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>                <span class="st">"stato"</span>: row.get(<span class="st">"stato"</span>),</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>                <span class="st">"semester"</span>: row.get(<span class="st">"semester"</span>),</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>                <span class="co"># mid location price at previous semester</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>                <span class="st">"loc_mid_lag"</span>: lag,</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>                <span class="co"># min and max location price</span></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>                <span class="st">"omi_loc_min"</span>: <span class="bu">float</span>(row[<span class="st">"loc_min"</span>]),</span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>                <span class="st">"omi_loc_max"</span>: <span class="bu">float</span>(row[<span class="st">"loc_max"</span>]),</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>                TARGET: mid,</span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>            }</span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> enriched</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
 </section>
 <section id="load-phase" class="level3">
 <h3 class="anchored" data-anchor-id="load-phase">Load phase</h3>
