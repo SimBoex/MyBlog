@@ -169,12 +169,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#extracting-data-from-omi.csv" id="toc-extracting-data-from-omi.csv" class="nav-link active" data-scroll-target="#extracting-data-from-omi.csv">Extracting data from OMI.CSV</a></li>
+  <li><a href="#aim" id="toc-aim" class="nav-link active" data-scroll-target="#aim">AIM</a>
+  <ul class="collapse">
+  <li><a href="#extracting-data-from-omi.csv" id="toc-extracting-data-from-omi.csv" class="nav-link" data-scroll-target="#extracting-data-from-omi.csv">Extracting data from OMI.CSV</a></li>
   <li><a href="#transforming-data" id="toc-transforming-data" class="nav-link" data-scroll-target="#transforming-data">Transforming data</a>
   <ul class="collapse">
   <li><a href="#feature-engineering" id="toc-feature-engineering" class="nav-link" data-scroll-target="#feature-engineering">Feature Engineering</a></li>
   <li><a href="#load-phase" id="toc-load-phase" class="nav-link" data-scroll-target="#load-phase">Load phase</a></li>
   <li><a href="#design-choices" id="toc-design-choices" class="nav-link" data-scroll-target="#design-choices">Design Choices</a></li>
+  </ul></li>
   </ul></li>
   </ul>
 </nav>
@@ -223,7 +226,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>“a” # AIM - INPUT: OMI.CSV data - OUTPUT: a JSONL file</p>
+<section id="aim" class="level1">
+<h1>AIM</h1>
+<ul>
+<li>INPUT: OMI.CSV data</li>
+<li>OUTPUT: a JSONL file</li>
+</ul>
 <section id="extracting-data-from-omi.csv" class="level2">
 <h2 class="anchored" data-anchor-id="extracting-data-from-omi.csv">Extracting data from OMI.CSV</h2>
 <ul>
@@ -247,7 +255,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><code>loc_mid_lag</code>: the mid location price at previous semester for same zona/tipologia/stato</li>
 </ul></li>
 </ul>
-<div id="773959ce" class="cell">
+<div id="b217fcb4" class="cell">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> build_features(rows: <span class="bu">list</span>[<span class="bu">dict</span>[<span class="bu">str</span>, Any]]) <span class="op">-&gt;</span> <span class="bu">list</span>[<span class="bu">dict</span>[<span class="bu">str</span>, Any]]:</span>
@@ -328,6 +336,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ol>
 
 
+</section>
 </section>
 </section>
 
