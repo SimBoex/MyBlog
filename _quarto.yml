@@ -11,7 +11,7 @@ website:
     left:
       - href: index.qmd
         text: Home
-      - href: Rent-tracker/index.qmd/
+      - href: Rent-tracker/index.qmd
         text: Rent Tracker
     right:
       - icon: github
