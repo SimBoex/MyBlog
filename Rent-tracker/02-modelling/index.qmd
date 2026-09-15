@@ -4,6 +4,7 @@ Regarding the modelling of the rental market, we are trying to predict the avera
 
 ## Features
 Two types of features are used in the model:
+
 - Numeric features:
     - loc_mid_lag (previous semester's average rent for meter squared)
 - Categorical features:
@@ -13,6 +14,7 @@ Two types of features are used in the model:
 
 ## Target Variable
 The target variable is:
+
     - loc_mid (next semester's average rent for meter squared)
 
 -----
