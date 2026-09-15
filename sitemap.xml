@@ -2,42 +2,46 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://SimBoex.github.io/MyBlog/about.html</loc>
-    <lastmod>2026-09-15T07:30:57.871Z</lastmod>
+    <lastmod>2026-09-15T07:42:54.167Z</lastmod>
   </url>
   <url>
     <loc>https://SimBoex.github.io/MyBlog/Rent-tracker/01-ETL/index.html</loc>
-    <lastmod>2026-09-15T07:30:57.866Z</lastmod>
-  </url>
-  <url>
-    <loc>https://SimBoex.github.io/MyBlog/ai-finance/03-news-engine/index.html</loc>
-    <lastmod>2026-09-15T07:30:57.873Z</lastmod>
-  </url>
-  <url>
-    <loc>https://SimBoex.github.io/MyBlog/ai-finance/02-metrics-engine/index.html</loc>
-    <lastmod>2026-09-15T07:30:57.872Z</lastmod>
-  </url>
-  <url>
-    <loc>https://SimBoex.github.io/MyBlog/ai-finance/index.html</loc>
-    <lastmod>2026-09-15T07:30:57.873Z</lastmod>
-  </url>
-  <url>
-    <loc>https://SimBoex.github.io/MyBlog/index.html</loc>
-    <lastmod>2026-09-15T07:30:57.873Z</lastmod>
-  </url>
-  <url>
-    <loc>https://SimBoex.github.io/MyBlog/ai-finance/01-data-layer/index.html</loc>
-    <lastmod>2026-09-15T07:30:57.872Z</lastmod>
-  </url>
-  <url>
-    <loc>https://SimBoex.github.io/MyBlog/ai-finance/04-ai-analyst/index.html</loc>
-    <lastmod>2026-09-15T07:30:57.873Z</lastmod>
+    <lastmod>2026-09-15T07:42:54.162Z</lastmod>
   </url>
   <url>
     <loc>https://SimBoex.github.io/MyBlog/Rent-tracker/index.html</loc>
-    <lastmod>2026-09-15T07:30:57.866Z</lastmod>
+    <lastmod>2026-09-15T07:42:54.162Z</lastmod>
+  </url>
+  <url>
+    <loc>https://SimBoex.github.io/MyBlog/ai-finance/04-ai-analyst/index.html</loc>
+    <lastmod>2026-09-15T07:42:54.169Z</lastmod>
+  </url>
+  <url>
+    <loc>https://SimBoex.github.io/MyBlog/ai-finance/01-data-layer/index.html</loc>
+    <lastmod>2026-09-15T07:42:54.167Z</lastmod>
+  </url>
+  <url>
+    <loc>https://SimBoex.github.io/MyBlog/index.html</loc>
+    <lastmod>2026-09-15T07:42:54.169Z</lastmod>
+  </url>
+  <url>
+    <loc>https://SimBoex.github.io/MyBlog/ai-finance/index.html</loc>
+    <lastmod>2026-09-15T07:42:54.169Z</lastmod>
+  </url>
+  <url>
+    <loc>https://SimBoex.github.io/MyBlog/ai-finance/02-metrics-engine/index.html</loc>
+    <lastmod>2026-09-15T07:42:54.168Z</lastmod>
+  </url>
+  <url>
+    <loc>https://SimBoex.github.io/MyBlog/ai-finance/03-news-engine/index.html</loc>
+    <lastmod>2026-09-15T07:42:54.169Z</lastmod>
+  </url>
+  <url>
+    <loc>https://SimBoex.github.io/MyBlog/Rent-tracker/03-retraining/index.html</loc>
+    <lastmod>2026-09-15T07:42:54.162Z</lastmod>
   </url>
   <url>
     <loc>https://SimBoex.github.io/MyBlog/Rent-tracker/02-modelling/index.html</loc>
-    <lastmod>2026-09-15T07:30:57.866Z</lastmod>
+    <lastmod>2026-09-15T07:42:54.162Z</lastmod>
   </url>
 </urlset>
