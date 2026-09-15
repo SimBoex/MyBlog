@@ -1,7 +1,9 @@
 # Modelling the Rental Market
 
-## Features
+Regarding the modelling of the rental market, we are trying to predict the average rent for meter squared in the next semester based on the previous semester's data. Now the approaches can be different, but we are using a simple approach that is to use the previous semester's average rent for meter squared as a feature to predict the next semester's average rent for meter squared. In the future if performance is not good enough more feature engineering can be done to improve the model or even models that can capture the temporal nature of the data can be used.
 
+## Features
+Two types of features are used in the model:
 - Numeric features:
     - loc_mid_lag (previous semester's average rent for meter squared)
 - Categorical features:
@@ -10,6 +12,7 @@
     - stato (property status)
 
 ## Target Variable
+The target variable is:
     - loc_mid (next semester's average rent for meter squared)
 
 -----
