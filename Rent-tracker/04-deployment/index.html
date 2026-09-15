@@ -6,8 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Simone Boesso">
 
-<title>index – Simone Boesso</title>
+<title>Deploying Roma Rent Monitor – Simone Boesso</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -130,54 +131,119 @@ ul.task-list li input[type="checkbox"] {
         <nav id="TOC" role="doc-toc" class="toc-active">
     <h2 id="toc-title">On this page</h2>
    
-  <ul>
+  <ul class="collapse">
   <li><a href="#deployment" id="toc-deployment" class="nav-link active" data-scroll-target="#deployment">Deployment</a>
   <ul class="collapse">
   <li><a href="#architecture" id="toc-architecture" class="nav-link" data-scroll-target="#architecture">Architecture</a></li>
-  <li><a href="#cloud-flow" id="toc-cloud-flow" class="nav-link" data-scroll-target="#cloud-flow">Cloud flow</a></li>
-  <li><a href="#design-choices" id="toc-design-choices" class="nav-link" data-scroll-target="#design-choices">Design Choices:</a></li>
+  <li><a href="#cloud-flow-new-omi-semester" id="toc-cloud-flow-new-omi-semester" class="nav-link" data-scroll-target="#cloud-flow-new-omi-semester">Cloud flow (new OMI semester)</a></li>
+  <li><a href="#design-choices" id="toc-design-choices" class="nav-link" data-scroll-target="#design-choices">Design choices</a></li>
   </ul></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Deploying Roma Rent Monitor</h1>
+<p class="subtitle lead">Low-cost architecture that still mirrors a real MLOps pattern</p>
+</div>
 
 
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Simone Boesso </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
 
 
 <section id="deployment" class="level1">
 <h1>Deployment</h1>
-<p>Well, this a small end to end system for a low cost (at most 0), so I couldn’t use any paid services. Yet, I tried to mirror real design pattern for a ML system.</p>
+<p>This is a small end-to-end system built for near-zero cost (free tiers only). I could not rely on paid data platforms or managed MLOps products — but I still mirrored a common production pattern: <strong>landing zone → batch job → versioned data → optional retrain → serve</strong>.</p>
 <section id="architecture" class="level2">
 <h2 class="anchored" data-anchor-id="architecture">Architecture</h2>
-<ul>
-<li>R2 buckets for storing data and models</li>
-<li>Render for hosting two services: API and the UI.</li>
-<li>Github Actions for CI/CD but also for triggering the cloud flow to retrain the model when new data is available.</li>
-</ul>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 53%">
+<col style="width: 46%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Piece</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Cloudflare R2</strong></td>
+<td>Private object storage: DVC cache for OMI/features under <code>dvc/</code>, plus an admin upload inbox under <code>omi-ingest/</code></td>
+</tr>
+<tr class="even">
+<td><strong>Render</strong></td>
+<td>Two Web Services from the same repo: FastAPI (Docker) and Streamlit UI</td>
+</tr>
+<tr class="odd">
+<td><strong>GitHub Actions</strong></td>
+<td>Unit tests (<code>ci.yml</code>) and the OMI monitoring / retrain loop (<code>omi-monitoring</code>)</td>
+</tr>
+<tr class="even">
+<td><strong>DVC</strong></td>
+<td>Versions raw CSVs and <code>features_latest.jsonl</code> without committing dumps to git</td>
+</tr>
+<tr class="odd">
+<td><strong>Git</strong></td>
+<td>Ships <code>models/baseline_latest/</code> into the API Docker image</td>
+</tr>
+</tbody>
+</table>
+<p>Models are <strong>not</strong> stored as the primary R2 artifact for serving: the API image bakes weights from git. R2 holds <strong>data</strong> (DVC + ingest inbox).</p>
 </section>
-<section id="cloud-flow" class="level2">
-<h2 class="anchored" data-anchor-id="cloud-flow">Cloud flow</h2>
+<section id="cloud-flow-new-omi-semester" class="level2">
+<h2 class="anchored" data-anchor-id="cloud-flow-new-omi-semester">Cloud flow (new OMI semester)</h2>
+<ol type="1">
+<li>Admin opens the Streamlit UI, enters the ingest token, uploads a <code>*VALORI*.csv</code>.</li>
+<li>UI <code>POST</code>s the file to the API (<code>X-Ingest-Token</code>). The token lives only in the <strong>API</strong> env — not on the UI service.</li>
+<li>API validates the CSV, dedupes by <strong>content SHA-256</strong> (local + remote manifest), uploads to R2 <code>omi-ingest/</code>, and — if configured — dispatches <code>omi-monitoring</code>. It does <strong>not</strong> retrain on Render.</li>
+<li>GitHub Actions then:
 <ul>
-<li>The admin add a .csv file in the UI after inserting a ingest token.</li>
-<li>The UI send the file to the API</li>
-<li>The API store the file in a R2 bucket and trigger a Github workflow to retrain the model.
-<ul>
-<li>first check if the file is valid, and is not present in the training data</li>
-<li>then pull using DVC the training data and then merge the new data with the old one</li>
-<li>Run again the pipeline and load using DVC the new data</li>
-<li>For now the model after retraining is added using git.</li>
-<li>the app is redeployed and the new model is used for predictions.</li>
+<li><code>dvc pull</code> (existing versioned history)</li>
+<li><code>pull_ingest_inbox</code> (add inbox CSVs that are not already on disk by filename — not a row-level merge)</li>
+<li><code>run_pipeline.py --skip-train</code> (reload + features)</li>
+<li><code>dvc push</code> (refresh versioned data)</li>
+<li>drift report → <strong>retrain only if</strong> <code>mae_current / mae_reference ≥ 1.5</code> (and enough reference rows)</li>
+<li>commit public monitoring snapshots; commit <code>baseline_latest</code> only when the gate fires</li>
 </ul></li>
-</ul>
+<li>Serving a new model needs a <strong>Manual Deploy</strong> of the API on Render so the Docker image picks up the git commit. Redeploy is not automatic.</li>
+</ol>
+<pre class="text"><code>Admin UI → API /ingest/omi → R2 omi-ingest/
+                ↓
+         omi-monitoring (Actions)
+                ↓
+    dvc/ + optional model commit → Manual Deploy API</code></pre>
 </section>
 <section id="design-choices" class="level2">
-<h2 class="anchored" data-anchor-id="design-choices">Design Choices:</h2>
-<p>well, several: - I used R2 buckets for storing data and models because they are free and easy to use. - I used Render for hosting the API and the UI because they are free and easy to use - I used Github Actions for CI/CD because they are free and easy to use - I used DVC for versioning the data and models because they are free and easy to use</p>
+<h2 class="anchored" data-anchor-id="design-choices">Design choices</h2>
 <ul>
-<li></li>
+<li><strong>R2</strong> — S3-compatible object storage with a free tier; one bucket, two prefixes (<code>dvc/</code> vs <code>omi-ingest/</code>) keep curated history separate from the upload inbox.</li>
+<li><strong>Render</strong> — Two free Web Services: API owns secrets (<code>INGEST_TOKEN</code>, AWS, optional <code>GITHUB_TOKEN</code>); UI only needs <code>RENT_API_URL</code>.</li>
+<li><strong>GitHub Actions</strong> — Cheap batch orchestrator for drift / retrain; fine at semester cadence. In production I would prefer an event-driven worker (object-created → queue → DAG).</li>
+<li><strong>DVC</strong> — Keeps large OMI files out of git while preserving reproducible pulls in CI.</li>
+<li><strong>Model in git</strong> — Simplest path to a reproducible Docker bake on free Render; a model registry would be the next step.</li>
 </ul>
+<p>Same pattern as many production stacks (inbox → process → promote); the implementation stays mechanical on purpose to stay at zero cost.</p>
 
 
 </section>
