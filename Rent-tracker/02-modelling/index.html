@@ -157,11 +157,24 @@ ul.task-list li input[type="checkbox"] {
 <p>Regarding the modelling of the rental market, we are trying to predict the average rent for meter squared in the next semester based on the previous semester’s data. Now the approaches can be different, but we are using a simple approach that is to use the previous semester’s average rent for meter squared as a feature to predict the next semester’s average rent for meter squared. In the future if performance is not good enough more feature engineering can be done to improve the model or even models that can capture the temporal nature of the data can be used.</p>
 <section id="features" class="level2">
 <h2 class="anchored" data-anchor-id="features">Features</h2>
-<p>Two types of features are used in the model: - Numeric features: - loc_mid_lag (previous semester’s average rent for meter squared) - Categorical features: - zona_omi (area of the city) - tipologia (property type) - stato (property status)</p>
+<p>Two types of features are used in the model:</p>
+<ul>
+<li>Numeric features:
+<ul>
+<li>loc_mid_lag (previous semester’s average rent for meter squared)</li>
+</ul></li>
+<li>Categorical features:
+<ul>
+<li>zona_omi (area of the city)</li>
+<li>tipologia (property type)</li>
+<li>stato (property status)</li>
+</ul></li>
+</ul>
 </section>
 <section id="target-variable" class="level2">
 <h2 class="anchored" data-anchor-id="target-variable">Target Variable</h2>
-<p>The target variable is: - loc_mid (next semester’s average rent for meter squared)</p>
+<p>The target variable is:</p>
+<pre><code>- loc_mid (next semester's average rent for meter squared)</code></pre>
 <hr>
 </section>
 <section id="data-splitting" class="level2">
