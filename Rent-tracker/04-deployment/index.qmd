@@ -1,29 +1,57 @@
+---
+title: "Deploying Roma Rent Monitor"
+subtitle: "Low-cost architecture that still mirrors a real MLOps pattern"
+author: "Simone Boesso"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+---
+
 # Deployment
-Well, this a small end to end system for a low cost (at most 0), so I couldn't use any paid services.
-Yet, I tried to mirror real design pattern for a ML system.
+
+This is a small end-to-end system built for near-zero cost (free tiers only). I could not rely on paid data platforms or managed MLOps products — but I still mirrored a common production pattern: **landing zone → batch job → versioned data → optional retrain → serve**.
 
 ## Architecture
-- R2 buckets for storing data and models
-- Render for hosting two services: API and the UI.
-- Github Actions for CI/CD but also for triggering the cloud flow to retrain the model when new data is available.
 
-## Cloud flow
+| Piece | Role |
+|-------|------|
+| **Cloudflare R2** | Private object storage: DVC cache for OMI/features under `dvc/`, plus an admin upload inbox under `omi-ingest/` |
+| **Render** | Two Web Services from the same repo: FastAPI (Docker) and Streamlit UI |
+| **GitHub Actions** | Unit tests (`ci.yml`) and the OMI monitoring / retrain loop (`omi-monitoring`) |
+| **DVC** | Versions raw CSVs and `features_latest.jsonl` without committing dumps to git |
+| **Git** | Ships `models/baseline_latest/` into the API Docker image |
 
-- The admin add a .csv file in the UI after inserting a ingest token.
-- The UI send the file to the API
-- The API store the file in a R2 bucket and trigger a Github workflow to retrain the model.
-    - first check if the file is valid, and is not present in the training data
-    - then pull using DVC the training data and then merge the new data with the old one
-    - Run again the pipeline and load using DVC the new data
-    - For now the model after retraining is added using git.
-    - the app is redeployed and the new model is used for predictions.
+Models are **not** stored as the primary R2 artifact for serving: the API image bakes weights from git. R2 holds **data** (DVC + ingest inbox).
 
+## Cloud flow (new OMI semester)
 
-## Design Choices:
-well, several:
-- I used R2 buckets for storing data and models because they are free and easy to use.
-- I used Render for hosting the API and the UI because they are free and easy to use
-- I used Github Actions for CI/CD because they are free and easy to use
-- I used DVC for versioning the data and models because they are free and easy to use
+1. Admin opens the Streamlit UI, enters the ingest token, uploads a `*VALORI*.csv`.
+2. UI `POST`s the file to the API (`X-Ingest-Token`). The token lives only in the **API** env — not on the UI service.
+3. API validates the CSV, dedupes by **content SHA-256** (local + remote manifest), uploads to R2 `omi-ingest/`, and — if configured — dispatches `omi-monitoring`. It does **not** retrain on Render.
+4. GitHub Actions then:
+   - `dvc pull` (existing versioned history)
+   - `pull_ingest_inbox` (add inbox CSVs that are not already on disk by filename — not a row-level merge)
+   - `run_pipeline.py --skip-train` (reload + features)
+   - `dvc push` (refresh versioned data)
+   - drift report → **retrain only if** `mae_current / mae_reference ≥ 1.5` (and enough reference rows)
+   - commit public monitoring snapshots; commit `baseline_latest` only when the gate fires
+5. Serving a new model needs a **Manual Deploy** of the API on Render so the Docker image picks up the git commit. Redeploy is not automatic.
 
-- 
+```text
+Admin UI → API /ingest/omi → R2 omi-ingest/
+                ↓
+         omi-monitoring (Actions)
+                ↓
+    dvc/ + optional model commit → Manual Deploy API
+```
+
+## Design choices
+
+- **R2** — S3-compatible object storage with a free tier; one bucket, two prefixes (`dvc/` vs `omi-ingest/`) keep curated history separate from the upload inbox.
+- **Render** — Two free Web Services: API owns secrets (`INGEST_TOKEN`, AWS, optional `GITHUB_TOKEN`); UI only needs `RENT_API_URL`.
+- **GitHub Actions** — Cheap batch orchestrator for drift / retrain; fine at semester cadence. In production I would prefer an event-driven worker (object-created → queue → DAG).
+- **DVC** — Keeps large OMI files out of git while preserving reproducible pulls in CI.
+- **Model in git** — Simplest path to a reproducible Docker bake on free Render; a model registry would be the next step.
+
+Same pattern as many production stacks (inbox → process → promote); the implementation stays mechanical on purpose to stay at zero cost.
