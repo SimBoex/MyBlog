@@ -340,21 +340,21 @@
     "href": "Rent-tracker/02-modelling/index.html",
     "title": "Modelling the Rental Market",
     "section": "",
-    "text": "Numeric features:\n\nloc_mid_lag (previous semester’s average rent for meter squared)\n\nCategorical features:\n\nzona_omi (area of the city)\ntipologia (property type)\nstato (property status)\n\n\n\n\n\n- loc_mid (next semester's average rent for meter squared)\n\n\n\n\n- Training set: all semesters except the last one\n- Test set: last semester\n\n\n\n- after each training, a dictionary with metrics is computed\n- two directories are created: baseling with time in the name and latest with the latest model and metrics\n    - inside each the model and the metrics are saved\n    - additionally, also the dataset is versioned and saved in the same directory using SHA256\n- ML flow is used to track the experiments and metrics\n\n\n\n\nthe current pipeline is:\n\nMissing value are set to 0\nOrdinalEncoder transforms categorical features into numeric values (set to -1 not seen categories)\nHistGradientBoostingRegressor is used as the model\n\n\n\n\n\nCurrently we are using HistGradientBoostingRegressor, but we can try other models in the future.\n\n\n\n\n\n\nMAE - Mean Absolute Error\n\nNo sensitive to outliers\n\nRMSE - Root Mean Squared Error\nR2 - Coefficient of Determination\n\nMeasures how well the model explains the variance in the target variable\n1.0 means perfect prediction,\n0 means the model is no better than a horizontal line (mean of the target variable)\nnegative values indicate that the model is worse than a horizontal line."
+    "text": "Regarding the modelling of the rental market, we are trying to predict the average rent for meter squared in the next semester based on the previous semester’s data. Now the approaches can be different, but we are using a simple approach that is to use the previous semester’s average rent for meter squared as a feature to predict the next semester’s average rent for meter squared. In the future if performance is not good enough more feature engineering can be done to improve the model or even models that can capture the temporal nature of the data can be used.\n\n\nTwo types of features are used in the model: - Numeric features: - loc_mid_lag (previous semester’s average rent for meter squared) - Categorical features: - zona_omi (area of the city) - tipologia (property type) - stato (property status)\n\n\n\nThe target variable is: - loc_mid (next semester’s average rent for meter squared)\n\n\n\n\n- Training set: all semesters except the last one\n- Test set: last semester\n\n\n\n- after each training, a dictionary with metrics is computed\n- two directories are created: baseling with time in the name and latest with the latest model and metrics\n    - inside each the model and the metrics are saved\n    - additionally, also the dataset is versioned and saved in the same directory using SHA256\n- ML flow is used to track the experiments and metrics\n\n\n\n\nthe current pipeline is:\n\nMissing value are set to 0\nOrdinalEncoder transforms categorical features into numeric values (set to -1 not seen categories)\nHistGradientBoostingRegressor is used as the model\n\n\n\n\n\nCurrently we are using HistGradientBoostingRegressor, but we can try other models in the future.\n\n\n\n\n\n\nMAE - Mean Absolute Error\n\nNo sensitive to outliers\n\nRMSE - Root Mean Squared Error\nR2 - Coefficient of Determination\n\nMeasures how well the model explains the variance in the target variable\n1.0 means perfect prediction,\n0 means the model is no better than a horizontal line (mean of the target variable)\nnegative values indicate that the model is worse than a horizontal line."
   },
   {
     "objectID": "Rent-tracker/02-modelling/index.html#features",
     "href": "Rent-tracker/02-modelling/index.html#features",
     "title": "Modelling the Rental Market",
     "section": "",
-    "text": "Numeric features:\n\nloc_mid_lag (previous semester’s average rent for meter squared)\n\nCategorical features:\n\nzona_omi (area of the city)\ntipologia (property type)\nstato (property status)"
+    "text": "Two types of features are used in the model: - Numeric features: - loc_mid_lag (previous semester’s average rent for meter squared) - Categorical features: - zona_omi (area of the city) - tipologia (property type) - stato (property status)"
   },
   {
     "objectID": "Rent-tracker/02-modelling/index.html#target-variable",
     "href": "Rent-tracker/02-modelling/index.html#target-variable",
     "title": "Modelling the Rental Market",
     "section": "",
-    "text": "- loc_mid (next semester's average rent for meter squared)"
+    "text": "The target variable is: - loc_mid (next semester’s average rent for meter squared)"
   },
   {
     "objectID": "Rent-tracker/02-modelling/index.html#data-splitting",
