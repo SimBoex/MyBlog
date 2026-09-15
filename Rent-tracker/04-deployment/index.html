@@ -134,8 +134,8 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#deployment" id="toc-deployment" class="nav-link active" data-scroll-target="#deployment">Deployment</a>
   <ul class="collapse">
   <li><a href="#architecture" id="toc-architecture" class="nav-link" data-scroll-target="#architecture">Architecture</a></li>
-  <li><a href="#github-actions" id="toc-github-actions" class="nav-link" data-scroll-target="#github-actions">Github Actions</a></li>
   <li><a href="#cloud-flow" id="toc-cloud-flow" class="nav-link" data-scroll-target="#cloud-flow">Cloud flow</a></li>
+  <li><a href="#design-choices" id="toc-design-choices" class="nav-link" data-scroll-target="#design-choices">Design Choices:</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -148,14 +148,36 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="deployment" class="level1">
 <h1>Deployment</h1>
+<p>Well, this a small end to end system for a low cost (at most 0), so I couldn’t use any paid services. Yet, I tried to mirror real design pattern for a ML system.</p>
 <section id="architecture" class="level2">
 <h2 class="anchored" data-anchor-id="architecture">Architecture</h2>
-</section>
-<section id="github-actions" class="level2">
-<h2 class="anchored" data-anchor-id="github-actions">Github Actions</h2>
+<ul>
+<li>R2 buckets for storing data and models</li>
+<li>Render for hosting two services: API and the UI.</li>
+<li>Github Actions for CI/CD but also for triggering the cloud flow to retrain the model when new data is available.</li>
+</ul>
 </section>
 <section id="cloud-flow" class="level2">
 <h2 class="anchored" data-anchor-id="cloud-flow">Cloud flow</h2>
+<ul>
+<li>The admin add a .csv file in the UI after inserting a ingest token.</li>
+<li>The UI send the file to the API</li>
+<li>The API store the file in a R2 bucket and trigger a Github workflow to retrain the model.
+<ul>
+<li>first check if the file is valid, and is not present in the training data</li>
+<li>then pull using DVC the training data and then merge the new data with the old one</li>
+<li>Run again the pipeline and load using DVC the new data</li>
+<li>For now the model after retraining is added using git.</li>
+<li>the app is redeployed and the new model is used for predictions.</li>
+</ul></li>
+</ul>
+</section>
+<section id="design-choices" class="level2">
+<h2 class="anchored" data-anchor-id="design-choices">Design Choices:</h2>
+<p>well, several: - I used R2 buckets for storing data and models because they are free and easy to use. - I used Render for hosting the API and the UI because they are free and easy to use - I used Github Actions for CI/CD because they are free and easy to use - I used DVC for versioning the data and models because they are free and easy to use</p>
+<ul>
+<li></li>
+</ul>
 
 
 </section>
