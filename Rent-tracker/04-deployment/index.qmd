@@ -1,7 +1,29 @@
 # Deployment
+Well, this a small end to end system for a low cost (at most 0), so I couldn't use any paid services.
+Yet, I tried to mirror real design pattern for a ML system.
 
 ## Architecture
-
-## Github Actions
+- R2 buckets for storing data and models
+- Render for hosting two services: API and the UI.
+- Github Actions for CI/CD but also for triggering the cloud flow to retrain the model when new data is available.
 
 ## Cloud flow
+
+- The admin add a .csv file in the UI after inserting a ingest token.
+- The UI send the file to the API
+- The API store the file in a R2 bucket and trigger a Github workflow to retrain the model.
+    - first check if the file is valid, and is not present in the training data
+    - then pull using DVC the training data and then merge the new data with the old one
+    - Run again the pipeline and load using DVC the new data
+    - For now the model after retraining is added using git.
+    - the app is redeployed and the new model is used for predictions.
+
+
+## Design Choices:
+well, several:
+- I used R2 buckets for storing data and models because they are free and easy to use.
+- I used Render for hosting the API and the UI because they are free and easy to use
+- I used Github Actions for CI/CD because they are free and easy to use
+- I used DVC for versioning the data and models because they are free and easy to use
+
+- 
