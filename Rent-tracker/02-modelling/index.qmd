@@ -3,14 +3,16 @@
 ## Features
 
 - Numeric features:
-    - loc_mid_lag
+    - loc_mid_lag (previous semester's average rent for meter squared)
 - Categorical features:
-    - zona_omi
-    - tipologia
-    - stato
+    - zona_omi (area of the city)
+    - tipologia (property type)
+    - stato (property status)
 
 ## Target Variable
-    - log_mid
+    - loc_mid (next semester's average rent for meter squared)
+
+-----
 
 ## Data splitting
     - Training set: all semesters except the last one
@@ -33,6 +35,7 @@
 ### Model Selection
 - Currently we are using HistGradientBoostingRegressor, but we can try other models in the future.
 
+----
 ### Metrics
 - MAE - Mean Absolute Error 
     - No sensitive to outliers
