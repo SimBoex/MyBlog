@@ -239,7 +239,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>We need to parse the data and extract the following fields: <code>required = ("zona", "tipologia", "loc_min", "loc_max")</code></li>
 <li>For each row in the CSV file, we will create a dictionary with the required fields and append it to a list.</li>
 </ul>
-<div id="49f7c745" class="cell">
+<div id="9df52c4e" class="cell">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>    rows.append(</span>
@@ -274,7 +274,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><code>loc_mid_lag</code>: the mid location price at previous semester for same zona/tipologia/stato</li>
 </ul></li>
 </ul>
-<div id="e555a021" class="cell">
+<div id="ec60a09b" class="cell">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> build_features(rows: <span class="bu">list</span>[<span class="bu">dict</span>[<span class="bu">str</span>, Any]]) <span class="op">-&gt;</span> <span class="bu">list</span>[<span class="bu">dict</span>[<span class="bu">str</span>, Any]]:</span>

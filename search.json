@@ -326,21 +326,21 @@
     "href": "Rent-tracker/02-modelling/index.html",
     "title": "Modelling the Rental Market",
     "section": "",
-    "text": "Numeric features:\n\nloc_mid_lag\n\nCategorical features:\n\nzona_omi\ntipologia\nstato\n\n\n\n\n\n- log_mid\n\n\n\n- Training set: all semesters except the last one\n- Test set: last semester\n\n\n\n- after each training, a dictionary with metrics is computed\n- two directories are created: baseling with time in the name and latest with the latest model and metrics\n    - inside each the model and the metrics are saved\n    - additionally, also the dataset is versioned and saved in the same directory using SHA256\n- ML flow is used to track the experiments and metrics\n\n\n\n\nthe current pipeline is:\n\nMissing value are set to 0\nOrdinalEncoder transforms categorical features into numeric values (set to -1 not seen categories)\nHistGradientBoostingRegressor is used as the model\n\n\n\n\n\nCurrently we are using HistGradientBoostingRegressor, but we can try other models in the future.\n\n\n\n\n\nMAE - Mean Absolute Error\n\nNo sensitive to outliers\n\nRMSE - Root Mean Squared Error\nR2 - Coefficient of Determination\n\nMeasures how well the model explains the variance in the target variable\n1.0 means perfect prediction,\n0 means the model is no better than a horizontal line (mean of the target variable)\nnegative values indicate that the model is worse than a horizontal line."
+    "text": "Numeric features:\n\nloc_mid_lag (previous semester’s average rent for meter squared)\n\nCategorical features:\n\nzona_omi (area of the city)\ntipologia (property type)\nstato (property status)\n\n\n\n\n\n- loc_mid (next semester's average rent for meter squared)\n\n\n\n\n- Training set: all semesters except the last one\n- Test set: last semester\n\n\n\n- after each training, a dictionary with metrics is computed\n- two directories are created: baseling with time in the name and latest with the latest model and metrics\n    - inside each the model and the metrics are saved\n    - additionally, also the dataset is versioned and saved in the same directory using SHA256\n- ML flow is used to track the experiments and metrics\n\n\n\n\nthe current pipeline is:\n\nMissing value are set to 0\nOrdinalEncoder transforms categorical features into numeric values (set to -1 not seen categories)\nHistGradientBoostingRegressor is used as the model\n\n\n\n\n\nCurrently we are using HistGradientBoostingRegressor, but we can try other models in the future.\n\n\n\n\n\n\nMAE - Mean Absolute Error\n\nNo sensitive to outliers\n\nRMSE - Root Mean Squared Error\nR2 - Coefficient of Determination\n\nMeasures how well the model explains the variance in the target variable\n1.0 means perfect prediction,\n0 means the model is no better than a horizontal line (mean of the target variable)\nnegative values indicate that the model is worse than a horizontal line."
   },
   {
     "objectID": "Rent-tracker/02-modelling/index.html#features",
     "href": "Rent-tracker/02-modelling/index.html#features",
     "title": "Modelling the Rental Market",
     "section": "",
-    "text": "Numeric features:\n\nloc_mid_lag\n\nCategorical features:\n\nzona_omi\ntipologia\nstato"
+    "text": "Numeric features:\n\nloc_mid_lag (previous semester’s average rent for meter squared)\n\nCategorical features:\n\nzona_omi (area of the city)\ntipologia (property type)\nstato (property status)"
   },
   {
     "objectID": "Rent-tracker/02-modelling/index.html#target-variable",
     "href": "Rent-tracker/02-modelling/index.html#target-variable",
     "title": "Modelling the Rental Market",
     "section": "",
-    "text": "- log_mid"
+    "text": "- loc_mid (next semester's average rent for meter squared)"
   },
   {
     "objectID": "Rent-tracker/02-modelling/index.html#data-splitting",
@@ -361,6 +361,6 @@
     "href": "Rent-tracker/02-modelling/index.html#modelling-approach",
     "title": "Modelling the Rental Market",
     "section": "",
-    "text": "the current pipeline is:\n\nMissing value are set to 0\nOrdinalEncoder transforms categorical features into numeric values (set to -1 not seen categories)\nHistGradientBoostingRegressor is used as the model\n\n\n\n\n\nCurrently we are using HistGradientBoostingRegressor, but we can try other models in the future.\n\n\n\n\n\nMAE - Mean Absolute Error\n\nNo sensitive to outliers\n\nRMSE - Root Mean Squared Error\nR2 - Coefficient of Determination\n\nMeasures how well the model explains the variance in the target variable\n1.0 means perfect prediction,\n0 means the model is no better than a horizontal line (mean of the target variable)\nnegative values indicate that the model is worse than a horizontal line."
+    "text": "the current pipeline is:\n\nMissing value are set to 0\nOrdinalEncoder transforms categorical features into numeric values (set to -1 not seen categories)\nHistGradientBoostingRegressor is used as the model\n\n\n\n\n\nCurrently we are using HistGradientBoostingRegressor, but we can try other models in the future.\n\n\n\n\n\n\nMAE - Mean Absolute Error\n\nNo sensitive to outliers\n\nRMSE - Root Mean Squared Error\nR2 - Coefficient of Determination\n\nMeasures how well the model explains the variance in the target variable\n1.0 means perfect prediction,\n0 means the model is no better than a horizontal line (mean of the target variable)\nnegative values indicate that the model is worse than a horizontal line."
   }
 ]

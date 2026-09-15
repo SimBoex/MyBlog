@@ -159,19 +159,20 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li>Numeric features:
 <ul>
-<li>loc_mid_lag</li>
+<li>loc_mid_lag (previous semester’s average rent for meter squared)</li>
 </ul></li>
 <li>Categorical features:
 <ul>
-<li>zona_omi</li>
-<li>tipologia</li>
-<li>stato</li>
+<li>zona_omi (area of the city)</li>
+<li>tipologia (property type)</li>
+<li>stato (property status)</li>
 </ul></li>
 </ul>
 </section>
 <section id="target-variable" class="level2">
 <h2 class="anchored" data-anchor-id="target-variable">Target Variable</h2>
-<pre><code>- log_mid</code></pre>
+<pre><code>- loc_mid (next semester's average rent for meter squared)</code></pre>
+<hr>
 </section>
 <section id="data-splitting" class="level2">
 <h2 class="anchored" data-anchor-id="data-splitting">Data splitting</h2>
@@ -201,6 +202,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li>Currently we are using HistGradientBoostingRegressor, but we can try other models in the future.</li>
 </ul>
+<hr>
 </section>
 <section id="metrics" class="level3">
 <h3 class="anchored" data-anchor-id="metrics">Metrics</h3>
